@@ -14,9 +14,9 @@ import {
   Row,
   Segmented,
 } from 'antd';
-import dayjs from 'dayjs';
 import type { FC } from 'react';
 import React, { useState } from 'react';
+import dayjs from '@/utils/dayjs';
 import OperationModal from './components/OperationModal';
 import type { BasicListItemDataType } from './data.d';
 import {

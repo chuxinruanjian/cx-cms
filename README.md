@@ -58,11 +58,30 @@ npm ci
 
 ```bash
 cp apps/api/.env.example apps/api/.env
+cp apps/admin/.env.example apps/admin/.env
 npm run app:key
 ```
 
 `npm run app:key` 会生成 AdonisJS 所需的 `APP_KEY` 并写入
 `apps/api/.env`。`.env` 包含本地配置和密钥，不会上传 Git。
+
+管理后台的 `apps/admin/.env` 用于配置 API 地址、文字品牌信息和显示时区：
+
+```dotenv
+APP_API_BASE_URL=
+APP_TITLE=CX CMS
+APP_SLOGAN_ZH_CN=让业务开发更简单
+APP_SLOGAN_EN_US=Build business software faster
+APP_COPYRIGHT_ZH_CN=© {year} 初心软件 版权所有
+APP_COPYRIGHT_EN_US=© {year} Chuxin Software. All rights reserved.
+APP_TIMEZONE=Asia/Shanghai
+```
+
+后台 Logo 固定使用 `apps/admin/public/logo.png`，发布地址固定为
+`/admin/logo.png`，无需环境变量。版权中的 `{year}` 会按照
+`APP_TIMEZONE` 自动替换。前端所有业务时间统一通过
+`apps/admin/src/utils/dayjs.ts` 解析和显示。请让 `APP_TIMEZONE` 与后端
+`apps/api/.env` 中的 `TZ` 保持一致。
 
 ### 4. 初始化数据库
 
@@ -85,9 +104,11 @@ npm run dev
 启动成功后访问：
 
 - API：<http://localhost:3333>
-- 管理后台：<http://localhost:8000>
+- 管理后台：<http://localhost:8000/admin/>
 
 管理后台开发环境会自动把 `/api` 请求代理到 AdonisJS API。
+
+管理后台仅提供简体中文和英文两种语言。
 
 也可以分别启动：
 
@@ -131,13 +152,107 @@ npm run db:rollback  # 回滚最近一批迁移
 npm run typecheck    # TypeScript 类型检查
 npm run lint         # 检查代码规范
 npm test             # 运行全部测试
-npm run build        # 构建 API 和管理后台
+npm run build        # 依次构建管理后台和 API 发布包
+npm run build:admin  # 后台构建到 apps/api/public/admin
+npm run build:api    # API 构建到 apps/api/build
+```
+
+## 构建与部署
+
+### 构建产物
+
+从仓库根目录执行：
+
+```bash
+npm ci
+npm run build
+```
+
+构建顺序不可颠倒：
+
+1. 管理后台以 `/admin/` 为路由和资源前缀，直接构建到
+   `apps/api/public/admin`。
+2. AdonisJS 随后把整个 `apps/api/public` 复制到
+   `apps/api/build/public`。
+3. 最终运行入口为 `apps/api/build/bin/server.js`。
+
+最终访问地址：
+
+- API：`https://example.com/api/v1/...`
+- 管理后台：`https://example.com/admin/`
+- H5：`https://example.com/h5/`（H5 工程初始化并构建后）
+
+`apps/api/public` 是公开静态文件源目录。域名验证文件（例如服务商提供的
+`.txt` 文件）、`robots.txt` 和其他必须公开访问的文件可直接放在该目录，
+提交到 Git 后会随 API 一起构建。例如 `apps/api/public/verify.txt` 的地址是
+`https://example.com/verify.txt`。
+
+`apps/api/public/admin` 和 `apps/api/public/h5` 是生成目录，已被 Git 忽略，
+不要手工维护或提交。H5 选定框架后，应将它的基础路径固定为 `/h5/`，构建
+输出固定为 `apps/api/public/h5`，并把 H5 构建命令插入后台和 API 构建之间。
+
+### 启动生产服务
+
+生产服务器保留仓库根目录的 `package.json`、`package-lock.json`、
+`node_modules` 和 `apps/api/build`，然后执行：
+
+```bash
+cd apps/api/build
+NODE_ENV=production node --env-file=../.env ace.js migration:run --force
+NODE_ENV=production node --env-file=../.env bin/server.js
+```
+
+生产环境也可以通过进程管理器注入环境变量，此时无需使用 `--env-file`。
+SQLite、日志、上传目录和证书目录在生产环境应配置为持久化磁盘上的绝对
+路径，避免发布新版本时丢失。生产 `.env` 中的 `APP_URL` 也应填写完整
+地址，不要保留变量插值：
+
+```dotenv
+APP_URL=https://example.com
+SQLITE_DB_PATH=/var/lib/cx-cms/database/app.sqlite3
+LOG_FILE=/var/log/cx-cms/app.log
+UPLOAD_DIR=/var/lib/cx-cms/uploads
+PAYMENT_CERT_DIR=/var/lib/cx-cms/certificates/payment
+```
+
+AdonisJS 已可直接提供 `build/public` 中的静态文件。流量较大时，建议让
+Nginx 直接提供静态文件并把其余请求转发给 AdonisJS：
+
+```nginx
+server {
+    listen 80;
+    server_name example.com;
+    root /var/www/cx-cms/apps/api/build/public;
+
+    location /admin/ {
+        try_files $uri $uri/ /admin/index.html;
+    }
+
+    location /h5/ {
+        try_files $uri $uri/ /h5/index.html;
+    }
+
+    location / {
+        try_files $uri @adonis;
+    }
+
+    location @adonis {
+        proxy_pass http://127.0.0.1:3333;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
 ```
 
 ## 目录说明
 
 ```text
 apps/api/                         AdonisJS API
+apps/api/public/                  域名验证等公开静态源文件
+apps/api/public/admin/            管理后台构建产物（生成、忽略）
+apps/api/public/h5/               H5 构建产物（生成、忽略）
 apps/admin/                       Ant Design Pro 管理后台
 apps/h5/                          预留 H5 应用
 storage/database/                 SQLite 数据库文件

@@ -3,6 +3,7 @@ import { GridContent } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
 import { Card, Col, Progress, Row, Skeleton, Statistic } from 'antd';
 import { type FC, lazy, Suspense } from 'react';
+import dayjs from '@/utils/dayjs';
 import { formatNumber } from '@/utils/format';
 import ActiveChart from './components/ActiveChart';
 import { queryTags } from './service';
@@ -10,7 +11,7 @@ import useStyles from './style.style';
 
 const MonitorMap = lazy(() => import('./components/Map'));
 
-const deadline = Date.now() + 1000 * 60 * 60 * 24 * 2 + 1000 * 30; // Moment is also OK
+const deadline = dayjs().add(2, 'day').add(30, 'second').valueOf();
 
 const Monitor: FC = () => {
   const { styles } = useStyles();
@@ -20,7 +21,7 @@ const Monitor: FC = () => {
   });
   const wordCloudData = (data?.list || []).map((item) => {
     return {
-      id: +Date.now(),
+      id: dayjs().valueOf(),
       word: item.name,
       weight: item.value,
     };

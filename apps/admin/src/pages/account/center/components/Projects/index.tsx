@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { Card, List } from 'antd';
-import dayjs from 'dayjs';
 import React from 'react';
 import { AvatarList } from '@/components';
+import dayjs from '@/utils/dayjs';
 import type { ListItemDataType } from '../../data.d';
 import { queryFakeList } from '../../service';
 import useStyles from './index.style';

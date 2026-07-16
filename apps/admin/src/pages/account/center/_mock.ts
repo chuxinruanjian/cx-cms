@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import dayjs from '@/utils/dayjs';
 import {
   avatars,
   defaultUser,
@@ -13,7 +14,7 @@ function getProjectNotice() {
     title,
     logo: avatars[i],
     description: desc[i % desc.length],
-    updatedAt: i % 2 === 0 ? new Date() : new Date('2017-07-24'),
+    updatedAt: i % 2 === 0 ? dayjs().toDate() : dayjs('2017-07-24').toDate(),
     member: [
       '科学搬砖组',
       '全组都是吴彦祖',

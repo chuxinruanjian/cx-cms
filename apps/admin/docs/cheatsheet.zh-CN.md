@@ -74,7 +74,6 @@ npm install                                                # 更新依赖
 | `npm run build` | 构建生产产物 |
 | `npm run preview` | 预览已构建产物（需先 `npm run build`，端口 8000） |
 | `npm run preview:build` | 构建并本地预览（端口 8000） |
-| `npm run deploy` | 构建并部署到 GitHub Pages |
 | `npm run analyze` | 构建产物体积分析 |
 | `npm run lint` | 代码检查（Biome + TypeScript） |
 | `npm run biome` | Biome 自动修复 |
@@ -500,7 +499,7 @@ npx skills add ant-design/ant-design-pro
 然后在项目根目录用 Claude Code 运行 `/pro-upgrade`，AI 会自动对比最新模板并辅助完成升级（依赖、配置、代码模式等），遇到冲突时会保守处理并询问确认。如使用其他 AI 助手，可将 `.claude/skills/pro-upgrade/SKILL.md` 中的内容提供给它。
 
 **Q: 如何部署？**
-`npm run build` 生成 `dist/` 目录，部署到任意静态服务器。配置 `publicPath` 处理非根目录部署。`npm run deploy` 会自动构建并发布到 GitHub Pages（推送到 gh-pages 分支）。
+从仓库根目录运行 `npm run build`。后台固定使用 `/admin/`，并先构建到 `apps/api/public/admin`，随后进入 AdonisJS 的 `apps/api/build/public/admin` 发布包。完整流程见仓库根目录 `README.md`。
 
 **Q: 如何使用 OpenAPI 代码生成？**
 1. 在 `config/config.ts` 配置 `openAPI` 2. 运行 `npm run openapi` 3. 自动生成 `src/services/` 下的代码

@@ -1,15 +1,15 @@
-import dayjs from 'dayjs';
 import type { Request, Response } from 'express';
+import dayjs from '@/utils/dayjs';
 import type { DataItem, OfflineDataType, SearchDataType } from './data.d';
 
 // mock data
 const visitData: DataItem[] = [];
-const beginDay = Date.now();
+const beginDay = dayjs();
 
 const fakeY = [7, 5, 4, 2, 4, 7, 5, 6, 5, 9, 6, 3, 1, 5, 3, 6, 5];
 for (let i = 0; i < fakeY.length; i += 1) {
   visitData.push({
-    x: dayjs(new Date(beginDay + 1000 * 60 * 60 * 24 * i)).format('YYYY-MM-DD'),
+    x: beginDay.add(i, 'day').format('YYYY-MM-DD'),
     y: fakeY[i],
   });
 }
@@ -18,7 +18,7 @@ const visitData2: DataItem[] = [];
 const fakeY2 = [1, 6, 4, 8, 3, 7, 2];
 for (let i = 0; i < fakeY2.length; i += 1) {
   visitData2.push({
-    x: dayjs(new Date(beginDay + 1000 * 60 * 60 * 24 * i)).format('YYYY-MM-DD'),
+    x: beginDay.add(i, 'day').format('YYYY-MM-DD'),
     y: fakeY2[i],
   });
 }
@@ -127,7 +127,9 @@ for (let i = 0; i < 10; i += 1) {
 const offlineChartData: DataItem[] = [];
 for (let i = 0; i < 20; i += 1) {
   offlineChartData.push({
-    x: Date.now() + 1000 * 60 * 30 * i,
+    x: dayjs()
+      .add(i * 30, 'minute')
+      .valueOf(),
     y1: Math.floor(Math.random() * 100) + 10,
     y2: Math.floor(Math.random() * 100) + 10,
   });
@@ -175,7 +177,7 @@ const getNotice = (_: Request, res: Response) => {
         title: titles[0],
         logo: avatars[0],
         description: '那是一种内在的东西，他们到达不了，也无法触及的',
-        updatedAt: new Date(),
+        updatedAt: dayjs().toDate(),
         member: '科学搬砖组',
         href: '',
         memberLink: '',
@@ -185,7 +187,7 @@ const getNotice = (_: Request, res: Response) => {
         title: titles[1],
         logo: avatars[1],
         description: '希望是一个好东西，也许是最好的，好东西是不会消亡的',
-        updatedAt: new Date('2017-07-24'),
+        updatedAt: dayjs('2017-07-24').toDate(),
         member: '全组都是吴彦祖',
         href: '',
         memberLink: '',
@@ -195,7 +197,7 @@ const getNotice = (_: Request, res: Response) => {
         title: titles[2],
         logo: avatars[2],
         description: '城镇中有那么多的酒馆，她却偏偏走进了我的酒馆',
-        updatedAt: new Date(),
+        updatedAt: dayjs().toDate(),
         member: '中二少女团',
         href: '',
         memberLink: '',
@@ -205,7 +207,7 @@ const getNotice = (_: Request, res: Response) => {
         title: titles[3],
         logo: avatars[3],
         description: '那时候我只会想自己想要什么，从不想自己拥有什么',
-        updatedAt: new Date('2017-07-23'),
+        updatedAt: dayjs('2017-07-23').toDate(),
         member: '程序员日常',
         href: '',
         memberLink: '',
@@ -215,7 +217,7 @@ const getNotice = (_: Request, res: Response) => {
         title: titles[4],
         logo: avatars[4],
         description: '凛冬将至',
-        updatedAt: new Date('2017-07-23'),
+        updatedAt: dayjs('2017-07-23').toDate(),
         member: '高逼格设计天团',
         href: '',
         memberLink: '',
@@ -225,7 +227,7 @@ const getNotice = (_: Request, res: Response) => {
         title: titles[5],
         logo: avatars[5],
         description: '生命就像一盒巧克力，结果往往出人意料',
-        updatedAt: new Date('2017-07-23'),
+        updatedAt: dayjs('2017-07-23').toDate(),
         member: '骗你来学计算机',
         href: '',
         memberLink: '',
@@ -239,7 +241,7 @@ const getActivities = (_: Request, res: Response) => {
     data: [
       {
         id: 'trend-1',
-        updatedAt: new Date(),
+        updatedAt: dayjs().toDate(),
         user: {
           name: '曲丽丽',
           avatar: avatars2[0],
@@ -256,7 +258,7 @@ const getActivities = (_: Request, res: Response) => {
       },
       {
         id: 'trend-2',
-        updatedAt: new Date(),
+        updatedAt: dayjs().toDate(),
         user: {
           name: '付小小',
           avatar: avatars2[1],
@@ -273,7 +275,7 @@ const getActivities = (_: Request, res: Response) => {
       },
       {
         id: 'trend-3',
-        updatedAt: new Date(),
+        updatedAt: dayjs().toDate(),
         user: {
           name: '林东东',
           avatar: avatars2[2],
@@ -290,7 +292,7 @@ const getActivities = (_: Request, res: Response) => {
       },
       {
         id: 'trend-4',
-        updatedAt: new Date(),
+        updatedAt: dayjs().toDate(),
         user: {
           name: '周星星',
           avatar: avatars2[4],
@@ -303,7 +305,7 @@ const getActivities = (_: Request, res: Response) => {
       },
       {
         id: 'trend-5',
-        updatedAt: new Date(),
+        updatedAt: dayjs().toDate(),
         user: {
           name: '朱偏右',
           avatar: avatars2[3],
@@ -320,7 +322,7 @@ const getActivities = (_: Request, res: Response) => {
       },
       {
         id: 'trend-6',
-        updatedAt: new Date(),
+        updatedAt: dayjs().toDate(),
         user: {
           name: '乐哥',
           avatar: avatars2[5],

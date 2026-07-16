@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Card, Col, Form, List, Row, Select, Typography } from 'antd';
-import dayjs from 'dayjs';
 import type { FC } from 'react';
 import { useState } from 'react';
 import { AvatarList, StandardFormRow, TagSelect } from '@/components';
+import dayjs from '@/utils/dayjs';
 import { categoryOptions } from '../../mock';
 import type { ListItemDataType } from './data.d';
 import { queryFakeList } from './service';
