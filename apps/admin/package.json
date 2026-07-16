@@ -7,7 +7,6 @@
   "scripts": {
     "analyze": "cross-env ANALYZE=1 max build",
     "build": "max build",
-    "deploy": "cross-env CI=true max build && gh-pages -d dist",
     "dev": "cross-env UMI_ENV=dev MOCK=none max dev",
     "i18n-remove": "node scripts/i18n-remove.js",
     "lint": "npm run biome:lint && npm run tsc",
@@ -78,7 +77,6 @@
     "cross-env": "^10.1.0",
     "express": "^5.2.1",
     "geojson": "^0.5.0",
-    "gh-pages": "^6.3.0",
     "happy-dom": "^20.10.6",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",

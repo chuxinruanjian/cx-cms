@@ -2,24 +2,21 @@ import { CheckOutlined, GlobalOutlined } from '@ant-design/icons';
 import { getAllLocales, getLocale, setLocale } from '@umijs/max';
 import type { MenuProps } from 'antd';
 import { Button } from 'antd';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import { setDayjsLocale } from '@/utils/dayjs';
 import HeaderDropdown from '../HeaderDropdown';
 import useHeaderActionStyles from './style';
 
 const localeLabelMap: Record<string, { emoji: string; label: string }> = {
   'zh-CN': { emoji: '🇨🇳', label: '简体中文' },
-  'zh-TW': { emoji: '🇭🇰', label: '繁體中文' },
   'en-US': { emoji: '🇺🇸', label: 'English' },
-  'ja-JP': { emoji: '🇯🇵', label: '日本語' },
-  'pt-BR': { emoji: '🇧🇷', label: 'Português' },
-  'id-ID': { emoji: '🇮🇩', label: 'Bahasa Indonesia' },
-  'fa-IR': { emoji: '🇮🇷', label: 'فارسی' },
-  'bn-BD': { emoji: '🇧🇩', label: 'বাংলা' },
 };
 
 const onLangClick: MenuProps['onClick'] = ({ key }) => {
   if (key.startsWith('lang-')) {
-    setLocale(key.replace('lang-', ''), false);
+    const locale = key.replace('lang-', '');
+    setDayjsLocale(locale);
+    setLocale(locale, false);
   }
 };
 
@@ -28,6 +25,10 @@ export const LangDropdown: React.FC = () => {
   const allLocales = useMemo(() => getAllLocales(), []);
   const currentLocale = getLocale();
   const supportLocales = allLocales.filter((l) => l in localeLabelMap);
+
+  useEffect(() => {
+    setDayjsLocale(currentLocale);
+  }, [currentLocale]);
 
   if (supportLocales.length <= 1) {
     return null;

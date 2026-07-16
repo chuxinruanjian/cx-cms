@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import dayjs from '@/utils/dayjs';
 import { fakeList } from '../../../../mock/utils';
 
 let sourceData: ReturnType<typeof fakeList> = [];
@@ -37,7 +38,7 @@ function postFakeList(req: Request, res: Response) {
       result.unshift({
         ...body,
         id: `fake-list-${result.length}`,
-        createdAt: Date.now(),
+        createdAt: dayjs().valueOf(),
       });
       break;
     default:

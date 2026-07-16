@@ -74,7 +74,6 @@ npm install                                                # Update dependencies
 | `npm run build` | Build for production |
 | `npm run preview` | Preview built output (run `npm run build` first, port 8000) |
 | `npm run preview:build` | Build and preview (port 8000) |
-| `npm run deploy` | Build and deploy to GitHub Pages |
 | `npm run analyze` | Analyze bundle size |
 | `npm run lint` | Lint (Biome + TypeScript) |
 | `npm run biome` | Auto-fix with Biome |
@@ -500,7 +499,7 @@ npx skills add ant-design/ant-design-pro
 Then run `/pro-upgrade` in Claude Code at the project root — AI will auto-diff the latest template and assist your upgrade (deps, config, code patterns, etc.), with conservative handling for ambiguous merges. For other AI assistants, paste the content of `.claude/skills/pro-upgrade/SKILL.md` to them.
 
 **Q: How to deploy?**
-`npm run build` generates `dist/`. Deploy to any static file server. Set `publicPath` for non-root deployments. `npm run deploy` builds and publishes to GitHub Pages automatically (pushes to gh-pages branch).
+Run `npm run build` from the repository root. Admin is fixed at `/admin/`; it builds into `apps/api/public/admin` first and is then included in the AdonisJS `apps/api/build/public/admin` deployment output. See the root `README.md` for the complete workflow.
 
 **Q: How to use OpenAPI code generation?**
 1. Configure `openAPI` in `config/config.ts` 2. Run `npm run openapi` 3. Code is auto-generated under `src/services/`

@@ -2,12 +2,19 @@
 
 import { join } from 'node:path';
 import { defineConfig } from '@umijs/max';
+import { appSettings } from '../src/config/appSettings';
 import defaultSettings from './defaultSettings';
 import proxy from './proxy';
 
 import routes from './routes';
 
 const { UMI_ENV = 'dev' } = process.env;
+
+try {
+  new Intl.DateTimeFormat('en-US', { timeZone: appSettings.timezone }).format();
+} catch {
+  throw new Error(`Invalid APP_TIMEZONE: ${appSettings.timezone}`);
+}
 
 // Compute commit hash: env vars take precedence, fall back to git at build time
 const commitHash =
@@ -31,9 +38,11 @@ const commitHash =
  * @description 部署时的路径，如果部署在非根目录下，需要配置这个变量
  * @doc https://umijs.org/docs/api/config#publicpath
  */
-const PUBLIC_PATH: string = '/';
+const ADMIN_BASE_PATH = '/admin/';
 
 export default defineConfig({
+  base: ADMIN_BASE_PATH,
+  outputPath: join(__dirname, '../../api/public/admin'),
   alias: {
     '@root': join(__dirname, '..'),
   },
@@ -44,7 +53,7 @@ export default defineConfig({
    */
   hash: true,
 
-  publicPath: PUBLIC_PATH,
+  publicPath: ADMIN_BASE_PATH,
 
   /**
    * @name 兼容性设置
@@ -114,7 +123,7 @@ export default defineConfig({
    * @name layout 插件
    * @doc https://umijs.org/docs/max/layout-menu
    */
-  title: 'Ant Design Pro',
+  title: appSettings.title,
   layout: {
     locale: true,
     ...defaultSettings,
@@ -126,7 +135,7 @@ export default defineConfig({
    */
   moment2dayjs: {
     preset: 'antd',
-    plugins: ['duration', 'relativeTime'],
+    plugins: ['duration', 'relativeTime', 'utc', 'timezone'],
   },
   /**
    * @name 国际化插件
@@ -187,7 +196,7 @@ export default defineConfig({
    */
   headScripts: [
     // 解决首次加载时白屏的问题
-    { src: join(PUBLIC_PATH, 'scripts/loading.js'), async: true },
+    { src: join(ADMIN_BASE_PATH, 'scripts/loading.js'), async: true },
   ],
 
   //================ pro 插件配置 =================
@@ -229,6 +238,13 @@ export default defineConfig({
   define: {
     'process.env.CI': process.env.CI,
     'process.env.COMMIT_HASH': commitHash,
+    'process.env.APP_API_BASE_URL': appSettings.apiBaseURL,
+    'process.env.APP_TITLE': appSettings.title,
+    'process.env.APP_TIMEZONE': appSettings.timezone,
+    'process.env.APP_SLOGAN_ZH_CN': appSettings.slogan['zh-CN'],
+    'process.env.APP_SLOGAN_EN_US': appSettings.slogan['en-US'],
+    'process.env.APP_COPYRIGHT_ZH_CN': appSettings.copyright['zh-CN'],
+    'process.env.APP_COPYRIGHT_EN_US': appSettings.copyright['en-US'],
     __APP_VERSION__: require('./../package.json').version,
     __UMI_VERSION__: require('@umijs/max/package.json').version,
     __UTOO_VERSION__: require('@utoo/pack/package.json').version,

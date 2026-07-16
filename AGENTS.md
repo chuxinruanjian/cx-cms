@@ -12,6 +12,7 @@ this file whenever a top-level directory or cross-application convention changes
 cx-cms/
 ├── apps/
 │   ├── api/                 # AdonisJS API and all server-side business logic
+│   │   └── public/          # Public static files and generated frontend builds
 │   ├── admin/               # Ant Design Pro management web application
 │   └── h5/                  # Reserved mobile-web application directory
 ├── storage/
@@ -32,7 +33,9 @@ Do not confuse these areas:
   `apps/api`.
 - Desktop management UI pages and components belong in `apps/admin`.
 - Mobile browser UI belongs in `apps/h5`, never in the admin app.
-- Runtime files belong in `storage`, never beside source files or in `public`.
+- Domain-verification and other intentionally public static files belong in
+  `apps/api/public`. Runtime uploads and secrets belong in `storage`, never in
+  `public`.
 
 The more specific `apps/admin/AGENTS.md` also applies to admin changes.
 
@@ -44,7 +47,9 @@ Run commands from the repository root unless noted otherwise.
 - `npm run dev`: start API and admin development servers together.
 - `npm run dev:api`: start only AdonisJS on port 3333.
 - `npm run dev:admin`: start only Ant Design Pro on port 8000.
-- `npm run build`: build all implemented applications.
+- `npm run build`: build admin first, then copy it into the API production build.
+- `npm run build:admin`: build admin into `apps/api/public/admin`.
+- `npm run build:api`: build AdonisJS and copy `public/**` into `build/public`.
 - `npm run lint`: lint all implemented applications.
 - `npm run typecheck`: type-check API and admin.
 - `npm test`: run all workspace tests.
@@ -73,12 +78,24 @@ changes, run typecheck, tests, and builds for every affected workspace.
 
 - Admin API requests use relative `/api/v1/...` URLs. Development proxying is
   configured in `apps/admin/config/proxy.ts`; production routing is infrastructure.
+- Admin supports only `zh-CN` and `en-US`. Do not add another locale unless the
+  product requirement explicitly changes.
+- Login title, slogans, and footer copyright come from `apps/admin/.env`; use
+  `apps/admin/.env.example` as the documented contract and never store them in the
+  database. The logo is fixed at `apps/admin/public/logo.png`.
+- Parse, calculate, and display frontend business time through
+  `apps/admin/src/utils/dayjs.ts`. Do not import Day.js directly in application
+  code. Keep `APP_TIMEZONE` aligned with the API `TZ` setting.
 - Do not duplicate backend validation rules as the only source of truth.
 - Keep page-specific files co-located in the page directory.
 - Read and follow `apps/admin/AGENTS.md` before editing the admin application,
   especially its generated-service and Ant Design API rules.
 - `apps/h5` currently has no selected framework. Do not initialize one unless the
-  task explicitly chooses the H5 stack; when initialized, add it to root workspaces.
+  task explicitly chooses the H5 stack; when initialized, add it to root workspaces,
+  use `/h5/` as its base path, and build it into `apps/api/public/h5` before the API
+  build runs.
+- Admin is always hosted at `/admin/` and builds into `apps/api/public/admin`.
+  Do not make either path environment-configurable.
 
 ## Runtime storage and secrets
 
@@ -96,7 +113,8 @@ changes, run typecheck, tests, and builds for every affected workspace.
 Commit source, migrations, tests, documentation, public static assets, dependency
 manifests, the root `package-lock.json`, `.env.example`, and directory placeholders.
 Do not commit generated builds, dependency directories, local IDE state, `.env`
-files, runtime storage contents, logs, databases, or private certificate formats.
+files, runtime storage contents, logs, databases, private certificate formats, or
+the generated `apps/api/public/admin` and `apps/api/public/h5` trees.
 
 Use conventional commit messages. Do not commit or push unless the user explicitly
 asks. Preserve unrelated user changes, and never regenerate or rewrite broad areas
