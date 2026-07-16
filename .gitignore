@@ -1,0 +1,56 @@
+# Dependencies
+**/node_modules/
+
+# Build, test, and framework-generated output
+**/dist/
+**/build/
+**/coverage/
+**/.umi/
+**/.umi-*/
+**/.turbopack/
+**/.temp/
+**/.cache/
+**/tmp/*
+!**/tmp/.gitkeep
+
+# Local environment files and secrets
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.test
+
+# Runtime storage: keep only directory placeholders
+storage/database/*
+!storage/database/.gitkeep
+storage/logs/*
+!storage/logs/.gitkeep
+storage/uploads/images/*
+!storage/uploads/images/.gitkeep
+storage/uploads/videos/*
+!storage/uploads/videos/.gitkeep
+storage/uploads/files/*
+!storage/uploads/files/.gitkeep
+storage/certificates/payment/*
+!storage/certificates/payment/.gitkeep
+
+# Private key and payment certificate formats
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Logs and local tooling
+*.log
+npm-debug.log*
+yarn-error.log*
+.DS_Store
+.idea/
+.vscode/
+.fleet/
+.history/
+.worktrees/
+
+# Local AI/tool settings
+**/.claude/settings.local.json
