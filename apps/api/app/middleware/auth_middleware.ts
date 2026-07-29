@@ -15,6 +15,14 @@ export default class AuthMiddleware {
     } = {}
   ) {
     await ctx.auth.authenticateUsing(options.guards)
+    const user = ctx.auth.getUserOrFail()
+    if (!user.status) {
+      return ctx.response.forbidden({
+        code: 'E_ADMIN_DISABLED',
+        message: 'This administrator account has been disabled',
+      })
+    }
+
     return next()
   }
 }

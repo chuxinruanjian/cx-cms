@@ -4,21 +4,52 @@ type ParamValue = string | number | bigint | boolean
 
 export type ScannedRoutes = {
   ALL: {
-    'auth.new_account.store': { paramsTuple?: []; params?: {} }
-    'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
-    'profile.profile.show': { paramsTuple?: []; params?: {} }
-    'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
+    'admin.auth.login': { paramsTuple?: []; params?: {} }
+    'admin.auth.me': { paramsTuple?: []; params?: {} }
+    'admin.auth.logout': { paramsTuple?: []; params?: {} }
+    'admin.admin_users.index': { paramsTuple?: []; params?: {} }
+    'admin.admin_users.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_users.sync_roles': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_roles.index': { paramsTuple?: []; params?: {} }
+    'admin.admin_roles.store': { paramsTuple?: []; params?: {} }
+    'admin.admin_roles.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_roles.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_roles.sync_permissions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_permissions.index': { paramsTuple?: []; params?: {} }
+    'admin.admin_permissions.store': { paramsTuple?: []; params?: {} }
+    'admin.admin_permissions.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_permissions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   GET: {
-    'profile.profile.show': { paramsTuple?: []; params?: {} }
+    'admin.auth.me': { paramsTuple?: []; params?: {} }
+    'admin.admin_users.index': { paramsTuple?: []; params?: {} }
+    'admin.admin_roles.index': { paramsTuple?: []; params?: {} }
+    'admin.admin_permissions.index': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
-    'profile.profile.show': { paramsTuple?: []; params?: {} }
+    'admin.auth.me': { paramsTuple?: []; params?: {} }
+    'admin.admin_users.index': { paramsTuple?: []; params?: {} }
+    'admin.admin_roles.index': { paramsTuple?: []; params?: {} }
+    'admin.admin_permissions.index': { paramsTuple?: []; params?: {} }
   }
   POST: {
-    'auth.new_account.store': { paramsTuple?: []; params?: {} }
-    'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
-    'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
+    'admin.auth.login': { paramsTuple?: []; params?: {} }
+    'admin.admin_roles.store': { paramsTuple?: []; params?: {} }
+    'admin.admin_permissions.store': { paramsTuple?: []; params?: {} }
+  }
+  DELETE: {
+    'admin.auth.logout': { paramsTuple?: []; params?: {} }
+    'admin.admin_roles.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_permissions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+  }
+  PATCH: {
+    'admin.admin_users.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_roles.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_permissions.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+  }
+  PUT: {
+    'admin.admin_users.sync_roles': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_roles.sync_permissions': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

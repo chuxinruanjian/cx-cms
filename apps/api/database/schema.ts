@@ -7,20 +7,9 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
-export class AuthAccessTokenSchema extends BaseModel {
-  static $columns = [
-    'abilities',
-    'createdAt',
-    'expiresAt',
-    'hash',
-    'id',
-    'lastUsedAt',
-    'name',
-    'tokenableId',
-    'type',
-    'updatedAt',
-  ] as const
-  $columns = AuthAccessTokenSchema.$columns
+export class AdminAccessTokenSchema extends BaseModel {
+  static $columns = ['abilities', 'createdAt', 'expiresAt', 'hash', 'id', 'lastUsedAt', 'name', 'tokenableId', 'type', 'updatedAt'] as const
+  $columns = AdminAccessTokenSchema.$columns
   @column()
   declare abilities: string
   @column.dateTime({ autoCreate: true })
@@ -43,9 +32,79 @@ export class AuthAccessTokenSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
-export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'fullName', 'id', 'password', 'updatedAt'] as const
-  $columns = UserSchema.$columns
+export class AdminPermissionSchema extends BaseModel {
+  static $columns = ['code', 'createdAt', 'description', 'id', 'name', 'status', 'updatedAt'] as const
+  $columns = AdminPermissionSchema.$columns
+  @column()
+  declare code: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare description: string | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare name: string
+  @column()
+  declare status: boolean
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class AdminRolePermissionSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'permissionId', 'roleId', 'updatedAt'] as const
+  $columns = AdminRolePermissionSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare permissionId: number
+  @column()
+  declare roleId: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class AdminRoleSchema extends BaseModel {
+  static $columns = ['code', 'createdAt', 'description', 'id', 'name', 'status', 'updatedAt'] as const
+  $columns = AdminRoleSchema.$columns
+  @column()
+  declare code: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare description: string | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare name: string
+  @column()
+  declare status: boolean
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class AdminUserRoleSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'roleId', 'updatedAt', 'userId'] as const
+  $columns = AdminUserRoleSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare roleId: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number
+}
+
+export class AdminUserSchema extends BaseModel {
+  static $columns = ['avatar', 'createdAt', 'email', 'fullName', 'id', 'isSuperAdmin', 'lastLoginAt', 'lastLoginIp', 'password', 'status', 'updatedAt', 'username'] as const
+  $columns = AdminUserSchema.$columns
+  @column()
+  declare avatar: string | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
   @column()
@@ -54,8 +113,18 @@ export class UserSchema extends BaseModel {
   declare fullName: string | null
   @column({ isPrimary: true })
   declare id: number
+  @column()
+  declare isSuperAdmin: boolean
+  @column.dateTime()
+  declare lastLoginAt: DateTime | null
+  @column()
+  declare lastLoginIp: string | null
   @column({ serializeAs: null })
   declare password: string
+  @column()
+  declare status: boolean
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+  @column()
+  declare username: string
 }

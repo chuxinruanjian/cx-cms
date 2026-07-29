@@ -65,14 +65,13 @@ npm run app:key
 `npm run app:key` 会生成 AdonisJS 所需的 `APP_KEY` 并写入
 `apps/api/.env`。`.env` 包含本地配置和密钥，不会上传 Git。
 
-管理后台的 `apps/admin/.env` 用于配置 API 地址、文字品牌信息和显示时区：
+管理后台的 `apps/admin/.env` 用于配置文字品牌信息和显示时区：
 
 ```dotenv
-APP_API_BASE_URL=
 APP_TITLE=CX CMS
 APP_SLOGAN_ZH_CN=让业务开发更简单
 APP_SLOGAN_EN_US=Build business software faster
-APP_COPYRIGHT_ZH_CN=© {year} 初心软件 版权所有
+APP_COPYRIGHT_ZH_CN=© {year} 楚信软件 版权所有
 APP_COPYRIGHT_EN_US=© {year} Chuxin Software. All rights reserved.
 APP_TIMEZONE=Asia/Shanghai
 ```
@@ -89,9 +88,22 @@ APP_TIMEZONE=Asia/Shanghai
 
 ```bash
 npm run db:migrate
+npm run db:seed
 ```
 
 数据库文件会生成在 `storage/database/app.sqlite3`，该文件不会上传 Git。
+
+执行 `db:seed` 前，请先在 `apps/api/.env` 设置首个超级管理员：
+
+```dotenv
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=请替换为强密码
+ADMIN_NAME=超级管理员
+ADMIN_EMAIL=admin@example.com
+```
+
+初始化命令会创建后台 RBAC 权限、`super_admin` 角色和首个超级管理员，
+可重复执行且不会重复插入数据。后台不提供公开注册接口。
 
 ### 5. 启动项目
 
@@ -103,10 +115,12 @@ npm run dev
 
 启动成功后访问：
 
-- API：<http://localhost:3333>
+- API：`http://localhost:<apps/api/.env 中的 PORT>`
 - 管理后台：<http://localhost:8000/admin/>
 
-管理后台开发环境会自动把 `/api` 请求代理到 AdonisJS API。
+管理后台始终使用当前域名下的相对 `/api` 地址。开发环境会自动读取
+`apps/api/.env` 的 `PORT`，把请求代理到本机 AdonisJS；修改后端端口后
+只需重启开发服务。生产环境不需要配置额外的 API 域名。
 
 管理后台仅提供简体中文和英文两种语言。
 
@@ -149,6 +163,7 @@ npm run dev:admin    # 只启动管理后台
 npm run app:key      # 生成 AdonisJS APP_KEY
 npm run db:migrate   # 执行数据库迁移
 npm run db:rollback  # 回滚最近一批迁移
+npm run db:seed      # 初始化 RBAC 和首个超级管理员
 npm run typecheck    # TypeScript 类型检查
 npm run lint         # 检查代码规范
 npm test             # 运行全部测试
@@ -268,3 +283,33 @@ storage/certificates/payment/     支付证书与私钥
 
 AI 开发前请先阅读根目录 `AGENTS.md`；修改管理后台时还需要阅读
 `apps/admin/AGENTS.md`。
+
+## 后台认证与 RBAC
+
+所有后台数据表统一使用 `admin_` 前缀：
+
+| 表名 | 用途 |
+| --- | --- |
+| `admin_users` | 后台用户、状态、超级管理员标记和最后登录信息 |
+| `admin_access_tokens` | 后台 Bearer Token，仅用于身份认证 |
+| `admin_roles` | 角色 |
+| `admin_permissions` | 原子权限 |
+| `admin_user_roles` | 用户与角色关系 |
+| `admin_role_permissions` | 角色与权限关系 |
+
+后台认证接口：
+
+- `POST /api/v1/admin/auth/login`
+- `GET /api/v1/admin/auth/me`
+- `DELETE /api/v1/admin/auth/logout`
+
+登录请求使用 `username`、`password` 和可选的 `remember`。普通登录令牌有效期
+为 12 小时，记住登录为 30 天。禁用用户不能登录。角色和权限不会固化到
+Token 中，每个受保护请求都从数据库实时读取，因此修改角色、禁用角色或
+禁用权限后会立即生效。
+
+RBAC 管理接口位于 `/api/v1/admin/users`、`/api/v1/admin/roles` 和
+`/api/v1/admin/permissions`。接口先经过 Bearer Token 认证，再通过
+`adminRbac` 中间件校验 `admin.users.*`、`admin.roles.*` 或
+`admin.permissions.*` 权限。`is_super_admin=true` 是明确的超级管理员
+旁路，首个超级管理员由 `npm run db:seed` 创建。

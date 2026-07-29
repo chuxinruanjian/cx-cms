@@ -37,9 +37,10 @@ Other: `npm run openapi` (regenerate `src/services/`), `npm run simple` (**irrev
 **i18n**: only `zh-CN` and `en-US` in `src/locales/`.
 `useIntl().formatMessage({ id, defaultMessage })`.
 
-**Branding**: title, bilingual slogan, footer copyright, API base URL, and timezone
-come from `.env`; keep `.env.example` current. The logo is fixed at
-`public/logo.png`, and the application is always hosted at `/admin/`.
+**Branding**: title, bilingual slogan, footer copyright, and timezone come from
+`.env`; keep `.env.example` current. API requests always use the current origin;
+the development proxy reads the API port from `apps/api/.env`. The logo is fixed
+at `public/logo.png`, and the application is always hosted at `/admin/`.
 
 **Time**: import the configured wrapper from `@/utils/dayjs`, never import Day.js
 directly in application code. `APP_TIMEZONE` is the display/calculation timezone.

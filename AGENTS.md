@@ -55,6 +55,7 @@ Run commands from the repository root unless noted otherwise.
 - `npm test`: run all workspace tests.
 - `npm run db:migrate`: apply Lucid migrations.
 - `npm run db:rollback`: roll back the latest Lucid migration batch.
+- `npm run db:seed`: initialize RBAC permissions and the first super administrator.
 
 Before finishing a change, run the smallest relevant checks. For cross-cutting
 changes, run typecheck, tests, and builds for every affected workspace.
@@ -73,6 +74,17 @@ changes, run typecheck, tests, and builds for every affected workspace.
   payment certificate.
 - API routes use the `/api/v1` prefix. Keep transport concerns in controllers,
   validation in validators, and reusable business logic in services.
+- Every management-side table uses the `admin_` prefix. The RBAC schema consists
+  of `admin_users`, `admin_access_tokens`, `admin_roles`, `admin_permissions`,
+  `admin_user_roles`, and `admin_role_permissions`.
+- Management authentication routes use `/api/v1/admin/auth/*`. There is no public
+  administrator signup route; create the first account with `npm run db:seed`.
+- An access token proves identity only. Roles and permissions must be resolved
+  from the database at request time through `AdminRbacService`, so revocation is
+  effective immediately. `is_super_admin` is the explicit authorization bypass.
+- Permission codes use dot-separated lowercase names such as
+  `admin.roles.update`. Protect management routes with the named `adminRbac`
+  middleware instead of duplicating role checks in controllers.
 
 ## Frontend rules
 

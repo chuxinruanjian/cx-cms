@@ -18,8 +18,8 @@ vi.mock('@umijs/max', () => ({
   Link: ({ children }: any) => children,
 }));
 
-vi.mock('@/services/ant-design-pro/api', () => ({
-  currentUser: mockQueryCurrentUser,
+vi.mock('@/services/adminAuth', () => ({
+  getCurrentAdmin: mockQueryCurrentUser,
 }));
 
 vi.mock('@/components', () => ({
@@ -61,10 +61,8 @@ describe('app getInitialState', () => {
   it('should fetch currentUser when not on login page', async () => {
     const { getInitialState } = await import('./app');
     mockQueryCurrentUser.mockResolvedValue({
-      data: {
-        name: 'Test User',
-        access: 'admin',
-      },
+      name: 'Test User',
+      permissions: ['*'],
     });
 
     const state = await getInitialState();
@@ -72,7 +70,7 @@ describe('app getInitialState', () => {
     expect(mockQueryCurrentUser).toHaveBeenCalled();
     expect(state.currentUser).toEqual({
       name: 'Test User',
-      access: 'admin',
+      permissions: ['*'],
     });
     expect(state.settingDrawerOpen).toBe(false);
     expect(state.fetchUserInfo).toBeDefined();
@@ -124,7 +122,7 @@ describe('app getInitialState', () => {
   it('should include default settings in initial state', async () => {
     const { getInitialState } = await import('./app');
     mockQueryCurrentUser.mockResolvedValue({
-      data: { name: 'User' },
+      name: 'User',
     });
 
     const state = await getInitialState();
@@ -135,12 +133,16 @@ describe('app getInitialState', () => {
   it('fetchUserInfo should return user data on success', async () => {
     const { getInitialState } = await import('./app');
     mockQueryCurrentUser.mockResolvedValue({
-      data: { name: 'Fetched User', access: 'user' },
+      name: 'Fetched User',
+      permissions: ['admin.users.view'],
     });
 
     const state = await getInitialState();
 
     const user = await state.fetchUserInfo?.();
-    expect(user).toEqual({ name: 'Fetched User', access: 'user' });
+    expect(user).toEqual({
+      name: 'Fetched User',
+      permissions: ['admin.users.view'],
+    });
   });
 });

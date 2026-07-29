@@ -18,7 +18,8 @@
     "typecheck": "tsc --noEmit",
     "app:key": "node ace generate:key",
     "db:migrate": "node ace migration:run && prettier --write database/schema.ts",
-    "db:rollback": "node ace migration:rollback && prettier --write database/schema.ts"
+    "db:rollback": "node ace migration:rollback && prettier --write database/schema.ts",
+    "db:seed": "node ace db:seed"
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",

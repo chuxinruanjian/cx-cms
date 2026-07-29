@@ -1,11 +1,23 @@
+import type { AdminAuthUser } from '@/types/admin';
+
 /**
  * @see https://umijs.org/docs/max/access#access
  * */
 export default function access(
-  initialState: { currentUser?: API.CurrentUser } | undefined,
+  initialState: { currentUser?: AdminAuthUser } | undefined,
 ) {
   const { currentUser } = initialState ?? {};
+  const hasPermission = (permission: string) =>
+    Boolean(
+      currentUser?.isSuperAdmin ||
+        currentUser?.permissions.includes('*') ||
+        currentUser?.permissions.includes(permission),
+    );
+
   return {
-    canAdmin: currentUser && currentUser.access === 'admin',
+    canAdmin: Boolean(currentUser),
+    hasRole: (role: string) =>
+      Boolean(currentUser?.isSuperAdmin || currentUser?.roles.includes(role)),
+    hasPermission,
   };
 }

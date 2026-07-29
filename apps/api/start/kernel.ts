@@ -47,4 +47,5 @@ router.use([
  */
 export const middleware = router.named({
   auth: () => import('#middleware/auth_middleware'),
+  adminRbac: () => import('#middleware/admin_rbac_middleware'),
 })

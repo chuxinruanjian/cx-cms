@@ -1,5 +1,4 @@
 export const appSettings = {
-  apiBaseURL: process.env.APP_API_BASE_URL || '',
   title: process.env.APP_TITLE || 'CX CMS',
   logo: '/admin/logo.png',
   timezone: process.env.APP_TIMEZONE || 'Asia/Shanghai',

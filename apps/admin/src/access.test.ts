@@ -1,64 +1,56 @@
 import { describe, expect, it } from 'vitest';
+import type { AdminAuthUser } from '@/types/admin';
 import access from './access';
 
+const createUser = (overrides: Partial<AdminAuthUser> = {}): AdminAuthUser => ({
+  id: 1,
+  username: 'admin',
+  name: 'Admin User',
+  fullName: 'Admin User',
+  email: 'admin@example.com',
+  avatar: null,
+  status: true,
+  isSuperAdmin: false,
+  roles: [],
+  permissions: [],
+  lastLoginAt: null,
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: null,
+  ...overrides,
+});
+
 describe('access', () => {
-  it('should return canAdmin true when user has admin access', () => {
-    const initialState = {
-      currentUser: {
-        userid: '1',
-        name: 'Admin User',
-        avatar: 'https://example.com/avatar.png',
-        access: 'admin',
-      },
-    };
-
-    const result = access(initialState);
-
-    expect(result.canAdmin).toBe(true);
+  it('allows an authenticated user into the admin application', () => {
+    expect(access({ currentUser: createUser() }).canAdmin).toBe(true);
   });
 
-  it('should return canAdmin false when user has non-admin access', () => {
-    const initialState = {
-      currentUser: {
-        userid: '2',
-        name: 'Regular User',
-        avatar: 'https://example.com/avatar.png',
-        access: 'user',
-      },
-    };
+  it('checks roles and permissions supplied by the API', () => {
+    const result = access({
+      currentUser: createUser({
+        roles: ['content_editor'],
+        permissions: ['admin.users.view'],
+      }),
+    });
 
-    const result = access(initialState);
-
-    expect(result.canAdmin).toBe(false);
+    expect(result.hasRole('content_editor')).toBe(true);
+    expect(result.hasPermission('admin.users.view')).toBe(true);
+    expect(result.hasPermission('admin.roles.delete')).toBe(false);
   });
 
-  it('should return canAdmin false when user access is undefined', () => {
-    const initialState = {
-      currentUser: {
-        userid: '3',
-        name: 'Guest User',
-        avatar: 'https://example.com/avatar.png',
-      },
-    };
+  it('lets a super administrator bypass role and permission checks', () => {
+    const result = access({
+      currentUser: createUser({ isSuperAdmin: true }),
+    });
 
-    const result = access(initialState);
-
-    expect(result.canAdmin).toBe(false);
+    expect(result.hasRole('any_role')).toBe(true);
+    expect(result.hasPermission('any.permission')).toBe(true);
   });
 
-  it('should return canAdmin false when currentUser is undefined', () => {
-    const initialState = {
-      currentUser: undefined,
-    };
-
-    const result = access(initialState);
-
-    expect(result.canAdmin).toBeFalsy();
-  });
-
-  it('should return canAdmin false when initialState is undefined', () => {
+  it('denies access when currentUser is missing', () => {
     const result = access(undefined);
 
-    expect(result.canAdmin).toBeFalsy();
+    expect(result.canAdmin).toBe(false);
+    expect(result.hasRole('content_editor')).toBe(false);
+    expect(result.hasPermission('admin.users.view')).toBe(false);
   });
 });

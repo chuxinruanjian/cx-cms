@@ -37,6 +37,12 @@ export default await Env.create(new URL('../', import.meta.url), {
   UPLOAD_DIR: Env.schema.string.optional(),
   PAYMENT_CERT_DIR: Env.schema.string.optional(),
 
+  // Initial administrator (used only by db:seed)
+  ADMIN_USERNAME: Env.schema.string.optional(),
+  ADMIN_PASSWORD: Env.schema.string.optional(),
+  ADMIN_NAME: Env.schema.string.optional(),
+  ADMIN_EMAIL: Env.schema.string.optional(),
+
   // Session
   SESSION_DRIVER: Env.schema.enum(['cookie', 'memory', 'database'] as const),
 })
