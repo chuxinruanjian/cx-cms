@@ -8,6 +8,7 @@ import {
   FormattedMessage,
   getLocale,
   Helmet,
+  history,
   SelectLang,
   useIntl,
   useModel,
@@ -17,7 +18,8 @@ import { createStyles } from 'antd-style';
 import React, { startTransition, useState } from 'react';
 import { Footer } from '@/components';
 import { appSettings, getAppLocale } from '@/config/appSettings';
-import { login } from '@/services/ant-design-pro/api';
+import { loginAdmin } from '@/services/adminAuth';
+import type { AdminLoginParams } from '@/types/admin';
 
 /**
  * Validate redirect URL to prevent open redirect attacks.
@@ -75,7 +77,7 @@ const LoginMessage: React.FC<{ content: string }> = ({ content }) => (
 );
 
 const Login: React.FC = () => {
-  const [userLoginState, setUserLoginState] = useState<API.LoginResult>({});
+  const [loginFailed, setLoginFailed] = useState(false);
   const { initialState, setInitialState } = useModel('@@initialState');
   const { styles } = useStyles();
   const { message } = App.useApp();
@@ -94,23 +96,21 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (values: API.LoginParams) => {
+  const handleSubmit = async (values: AdminLoginParams) => {
     try {
-      const result = await login({ ...values, type: 'account' });
-      if (result.status === 'ok') {
-        message.success(
-          intl.formatMessage({
-            id: 'pages.login.success',
-            defaultMessage: '登录成功！',
-          }),
-        );
-        await fetchUserInfo();
-        const urlParams = new URL(window.location.href).searchParams;
-        window.location.href = getSafeRedirectUrl(urlParams.get('redirect'));
-        return;
-      }
-      setUserLoginState(result);
+      setLoginFailed(false);
+      await loginAdmin(values);
+      message.success(
+        intl.formatMessage({
+          id: 'pages.login.success',
+          defaultMessage: '登录成功！',
+        }),
+      );
+      await fetchUserInfo();
+      const urlParams = new URL(window.location.href).searchParams;
+      history.replace(getSafeRedirectUrl(urlParams.get('redirect')));
     } catch {
+      setLoginFailed(true);
       message.error(
         intl.formatMessage({
           id: 'pages.login.failure',
@@ -140,10 +140,10 @@ const Login: React.FC = () => {
           subTitle={appSettings.slogan[locale]}
           initialValues={{ autoLogin: true }}
           onFinish={async (values) => {
-            await handleSubmit(values as API.LoginParams);
+            await handleSubmit(values as AdminLoginParams);
           }}
         >
-          {userLoginState.status === 'error' && (
+          {loginFailed && (
             <LoginMessage
               content={intl.formatMessage({
                 id: 'pages.login.accountLogin.errorMessage',

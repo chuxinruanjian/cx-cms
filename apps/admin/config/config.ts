@@ -238,7 +238,6 @@ export default defineConfig({
   define: {
     'process.env.CI': process.env.CI,
     'process.env.COMMIT_HASH': commitHash,
-    'process.env.APP_API_BASE_URL': appSettings.apiBaseURL,
     'process.env.APP_TITLE': appSettings.title,
     'process.env.APP_TIMEZONE': appSettings.timezone,
     'process.env.APP_SLOGAN_ZH_CN': appSettings.slogan['zh-CN'],

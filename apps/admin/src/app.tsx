@@ -14,7 +14,8 @@ import {
   OfflineBanner,
   VersionDropdown,
 } from '@/components';
-import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
+import { getCurrentAdmin } from '@/services/adminAuth';
+import type { AdminAuthUser } from '@/types/admin';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 
@@ -26,17 +27,16 @@ const loginPath = '/user/login';
  * */
 export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
-  currentUser?: API.CurrentUser;
+  currentUser?: AdminAuthUser;
   loading?: boolean;
-  fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
+  fetchUserInfo?: () => Promise<AdminAuthUser | undefined>;
   settingDrawerOpen?: boolean;
 }> {
   const fetchUserInfo = async () => {
     try {
-      const msg = await queryCurrentUser({
+      return await getCurrentAdmin({
         skipErrorHandler: true,
       });
-      return msg.data;
     } catch (_error) {
       const { pathname, search, hash } = history.location;
       history.replace(
@@ -47,11 +47,7 @@ export async function getInitialState(): Promise<{
   };
   // 如果不是登录页面，执行
   const { location } = history;
-  if (
-    ![loginPath, '/user/register', '/user/register-result'].includes(
-      location.pathname,
-    )
-  ) {
+  if (location.pathname !== loginPath) {
     const currentUser = await fetchUserInfo();
     return {
       fetchUserInfo,
@@ -96,7 +92,7 @@ export const layout: RunTimeLayoutConfig = ({
     },
     avatarProps: {
       src: initialState?.currentUser?.avatar,
-      title: 'ProUser',
+      title: initialState?.currentUser?.name,
       render: (_, avatarChildren) => (
         <AvatarDropdown>{avatarChildren}</AvatarDropdown>
       ),
@@ -185,7 +181,8 @@ export const layout: RunTimeLayoutConfig = ({
  * @doc https://umijs.org/docs/max/request#配置
  */
 export const request: RequestConfig = {
-  baseURL: process.env.APP_API_BASE_URL || '',
+  // Development uses config/proxy.ts; production always calls the current origin.
+  baseURL: '',
   ...errorConfig,
 };
 
