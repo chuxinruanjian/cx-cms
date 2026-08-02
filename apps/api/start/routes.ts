@@ -16,6 +16,10 @@ const AccessTokensController = () => import('#controllers/access_tokens_controll
 const AdminUsersController = () => import('#controllers/admin_users_controller')
 const AdminRolesController = () => import('#controllers/admin_roles_controller')
 const AdminPermissionsController = () => import('#controllers/admin_permissions_controller')
+const UploadConfigController = () => import('#controllers/upload_config_controller')
+const UploadsController = () => import('#controllers/uploads_controller')
+const AttachmentsController = () => import('#controllers/attachments_controller')
+const UploadCleanupController = () => import('#controllers/upload_cleanup_controller')
 
 const serveSpa = (entryFile: string, missingMessage: string) => {
   return ({ response }: HttpContext) => {
@@ -37,6 +41,7 @@ router
     router
       .group(() => {
         router.get('auth/me', [AccessTokensController, 'show']).as('auth.me')
+        router.patch('auth/me', [AccessTokensController, 'update']).as('auth.update')
         router.delete('auth/logout', [AccessTokensController, 'destroy']).as('auth.logout')
 
         router
@@ -77,6 +82,47 @@ router
         router
           .delete('permissions/:id', [AdminPermissionsController, 'destroy'])
           .use(middleware.adminRbac({ permissions: ['admin.permissions.delete'] }))
+
+        router
+          .get('upload-config', [UploadConfigController, 'show'])
+          .use(middleware.adminRbac({ permissions: ['admin.attachments.upload'] }))
+        router
+          .get('uploads', [UploadsController, 'index'])
+          .use(middleware.adminRbac({ permissions: ['admin.attachments.view'] }))
+        router
+          .post('uploads', [UploadsController, 'store'])
+          .use(middleware.adminRbac({ permissions: ['admin.attachments.upload'] }))
+        router
+          .post('uploads/init', [UploadsController, 'initialize'])
+          .use(middleware.adminRbac({ permissions: ['admin.attachments.upload'] }))
+        router
+          .post('uploads/:uploadId/chunks', [UploadsController, 'storeChunk'])
+          .use(middleware.adminRbac({ permissions: ['admin.attachments.upload'] }))
+        router
+          .get('uploads/:uploadId', [UploadsController, 'show'])
+          .use(middleware.adminRbac({ permissions: ['admin.attachments.upload'] }))
+        router
+          .post('uploads/:uploadId/complete', [UploadsController, 'complete'])
+          .use(middleware.adminRbac({ permissions: ['admin.attachments.upload'] }))
+        router
+          .post('uploads/:uploadId/abort', [UploadsController, 'abort'])
+          .use(middleware.adminRbac({ permissions: ['admin.attachments.upload'] }))
+
+        router
+          .get('attachments', [AttachmentsController, 'index'])
+          .use(middleware.adminRbac({ permissions: ['admin.attachments.view'] }))
+        router
+          .post('attachments/bind', [AttachmentsController, 'bind'])
+          .use(middleware.adminRbac({ permissions: ['admin.attachments.bind'] }))
+        router
+          .post('attachments/sort', [AttachmentsController, 'sort'])
+          .use(middleware.adminRbac({ permissions: ['admin.attachments.bind'] }))
+        router.get('attachments/:id', [AttachmentsController, 'show'])
+        router.get('attachments/:id/content', [AttachmentsController, 'content'])
+        router.delete('attachments/:id', [AttachmentsController, 'destroy'])
+        router
+          .post('uploads/cleanup', [UploadCleanupController, 'store'])
+          .use(middleware.adminRbac({ permissions: ['admin.attachments.cleanup'] }))
       })
       .use(middleware.auth())
   })

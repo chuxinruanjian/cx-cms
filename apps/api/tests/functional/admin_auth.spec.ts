@@ -1,5 +1,6 @@
 import AdminPermission from '#models/admin_permission'
 import AdminRole from '#models/admin_role'
+import AdminAttachmentRelation from '#models/admin_attachment_relation'
 import AdminUser from '#models/admin_user'
 import testUtils from '@adonisjs/core/services/test_utils'
 import { test } from '@japa/runner'
@@ -80,6 +81,96 @@ test.group('Admin authentication and RBAC', (group) => {
 
     response.assertStatus(403)
     response.assertBodyContains({ code: 'E_ADMIN_DISABLED' })
+  })
+
+  test('updates the current profile and binds an uploaded avatar', async ({ client }) => {
+    const user = await AdminUser.create({
+      username: 'profile-admin',
+      fullName: 'Profile Admin',
+      email: 'profile@example.com',
+      password: 'StrongPassword123!',
+      status: true,
+      isSuperAdmin: true,
+    })
+    const token = await AdminUser.accessTokens.create(user)
+    const authorization = `Bearer ${token.value!.release()}`
+    const png = Buffer.alloc(128)
+    Buffer.from('89504e470d0a1a0a', 'hex').copy(png)
+
+    const upload = await client
+      .post('/api/v1/admin/uploads')
+      .header('Authorization', authorization)
+      .fields({ uploadToken: 'profile_avatar_token' })
+      .file('file', png, { filename: 'avatar.png', contentType: 'image/png' })
+
+    upload.assertStatus(201)
+    const attachmentId = (upload.body() as { id: number }).id
+    const updated = await client
+      .patch('/api/v1/admin/auth/me')
+      .header('Authorization', authorization)
+      .json({
+        fullName: 'Updated Admin',
+        email: 'updated@example.com',
+        profile: 'Reusable project administrator',
+        avatarAttachmentId: attachmentId,
+      })
+
+    updated.assertStatus(200)
+    updated.assertBodyContains({
+      fullName: 'Updated Admin',
+      email: 'updated@example.com',
+      profile: 'Reusable project administrator',
+      avatar: `/api/v1/admin/attachments/${attachmentId}/content`,
+    })
+
+    await user.refresh()
+    if (user.profile !== 'Reusable project administrator') {
+      throw new Error('Expected the profile to be persisted')
+    }
+    const relation = await AdminAttachmentRelation.query()
+      .where('attachment_id', attachmentId)
+      .where('business_type', 'admin_user')
+      .where('business_id', String(user.id))
+      .where('field_name', 'avatar')
+      .first()
+    if (!relation) throw new Error('Expected the avatar attachment to be bound')
+
+    const avatar = await client
+      .get(`/api/v1/admin/attachments/${attachmentId}/content`)
+      .header('Authorization', authorization)
+    avatar.assertStatus(200)
+  })
+
+  test('rejects a profile email already used by another administrator', async ({ client }) => {
+    await AdminUser.create({
+      username: 'existing-admin',
+      fullName: 'Existing Admin',
+      email: 'existing@example.com',
+      password: 'StrongPassword123!',
+      status: true,
+      isSuperAdmin: false,
+    })
+    const user = await AdminUser.create({
+      username: 'editing-admin',
+      fullName: 'Editing Admin',
+      email: 'editing@example.com',
+      password: 'StrongPassword123!',
+      status: true,
+      isSuperAdmin: false,
+    })
+    const token = await AdminUser.accessTokens.create(user)
+
+    const response = await client
+      .patch('/api/v1/admin/auth/me')
+      .header('Authorization', `Bearer ${token.value!.release()}`)
+      .json({
+        fullName: 'Editing Admin',
+        email: 'existing@example.com',
+        profile: null,
+      })
+
+    response.assertStatus(422)
+    response.assertBodyContains({ code: 'E_ADMIN_EMAIL_TAKEN' })
   })
 
   test('evaluates permissions from the database for every request', async ({ client }) => {

@@ -5,6 +5,9 @@ import network from './en-US/network';
 import pages from './en-US/pages';
 import settingDrawer from './en-US/settingDrawer';
 import settings from './en-US/settings';
+import tiptap from './en-US/tiptap';
+import uiStandard from './en-US/uiStandard';
+import uploader from './en-US/uploader';
 
 export default {
   'navBar.lang': 'Languages',
@@ -16,7 +19,10 @@ export default {
   ...menu,
   ...settingDrawer,
   ...settings,
+  ...tiptap,
   ...network,
   ...component,
   ...pages,
+  ...uiStandard,
+  ...uploader,
 };

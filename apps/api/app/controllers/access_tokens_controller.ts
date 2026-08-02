@@ -1,6 +1,9 @@
 import AdminUser from '#models/admin_user'
+import AdminAttachment from '#models/admin_attachment'
+import UploadException from '#exceptions/upload_exception'
 import AdminAuthService from '#services/admin_auth_service'
-import { adminLoginValidator } from '#validators/admin_auth'
+import AttachmentService from '#services/upload/attachment_service'
+import { adminLoginValidator, updateAdminProfileValidator } from '#validators/admin_auth'
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 
@@ -41,6 +44,51 @@ export default class AccessTokensController {
 
   async show({ auth }: HttpContext) {
     return AdminAuthService.serializeUser(auth.getUserOrFail())
+  }
+
+  async update({ auth, request, response }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const { avatarAttachmentId, ...profile } = await request.validateUsing(
+      updateAdminProfileValidator
+    )
+    const emailOwner = await AdminUser.query()
+      .where('email', profile.email)
+      .whereNot('id', user.id)
+      .first()
+    if (emailOwner) {
+      return response.unprocessableEntity({
+        code: 'E_ADMIN_EMAIL_TAKEN',
+        message: 'Email is already in use',
+      })
+    }
+
+    if (avatarAttachmentId !== undefined) {
+      if (avatarAttachmentId === null) {
+        await AttachmentService.bind(user, {
+          attachmentIds: [],
+          businessType: 'admin_user',
+          businessId: String(user.id),
+          fieldName: 'avatar',
+        })
+        user.avatar = null
+      } else {
+        const attachment = await AdminAttachment.findOrFail(avatarAttachmentId)
+        if (attachment.fileType !== 'image') {
+          throw new UploadException('Avatar attachment must be an image', 'E_AVATAR_NOT_IMAGE')
+        }
+        const [avatar] = await AttachmentService.bind(user, {
+          attachmentIds: [avatarAttachmentId],
+          businessType: 'admin_user',
+          businessId: String(user.id),
+          fieldName: 'avatar',
+        })
+        user.avatar = avatar.previewUrl
+      }
+    }
+
+    user.merge(profile)
+    await user.save()
+    return AdminAuthService.serializeUser(user)
   }
 
   async destroy({ auth }: HttpContext) {

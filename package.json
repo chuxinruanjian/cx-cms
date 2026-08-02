@@ -23,7 +23,8 @@
     "app:key": "npm run app:key --workspace=@cx-cms/api",
     "db:migrate": "npm run db:migrate --workspace=@cx-cms/api",
     "db:rollback": "npm run db:rollback --workspace=@cx-cms/api",
-    "db:seed": "npm run db:seed --workspace=@cx-cms/api"
+    "db:seed": "npm run db:seed --workspace=@cx-cms/api",
+    "uploads:cleanup": "npm run uploads:cleanup --workspace=@cx-cms/api"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.1",

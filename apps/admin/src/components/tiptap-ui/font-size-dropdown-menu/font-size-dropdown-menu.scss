@@ -1,0 +1,32 @@
+.tiptap-font-size-button {
+  min-width: 2.5rem;
+  padding-inline: 0.375rem;
+}
+
+.tiptap-font-size-button-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.tiptap-font-size-dropdown-content {
+  min-width: 9rem;
+}
+
+.tiptap-font-size-menu-item {
+  width: 100%;
+  justify-content: flex-start;
+  padding-inline: 0.625rem;
+}
+
+.tiptap-font-size-toolbar-options {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  white-space: nowrap;
+}
+
+.tiptap-font-size-toolbar-options .tiptap-button {
+  min-width: 2rem;
+  padding-inline: 0.375rem;
+}

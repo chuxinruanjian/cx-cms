@@ -16,6 +16,12 @@ export default function access(
 
   return {
     canAdmin: Boolean(currentUser),
+    canManageFiles:
+      hasPermission('admin.attachments.upload') ||
+      hasPermission('admin.attachments.view'),
+    canUploadFiles: hasPermission('admin.attachments.upload'),
+    canViewFiles: hasPermission('admin.attachments.view'),
+    canCleanupFiles: hasPermission('admin.attachments.cleanup'),
     hasRole: (role: string) =>
       Boolean(currentUser?.isSuperAdmin || currentUser?.roles.includes(role)),
     hasPermission,

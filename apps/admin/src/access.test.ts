@@ -8,6 +8,7 @@ const createUser = (overrides: Partial<AdminAuthUser> = {}): AdminAuthUser => ({
   name: 'Admin User',
   fullName: 'Admin User',
   email: 'admin@example.com',
+  profile: null,
   avatar: null,
   status: true,
   isSuperAdmin: false,

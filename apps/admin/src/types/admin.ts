@@ -4,6 +4,7 @@ export interface AdminAuthUser {
   name: string;
   fullName: string | null;
   email: string;
+  profile: string | null;
   avatar: string | null;
   status: boolean;
   isSuperAdmin: boolean;

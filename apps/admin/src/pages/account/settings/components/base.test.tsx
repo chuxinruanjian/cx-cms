@@ -1,281 +1,210 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, waitFor } from '@testing-library/react';
+import { act, render, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as service from '../service';
 import BaseView from './base';
 
 const mocks = vi.hoisted(() => ({
-  form: {
-    setFieldValue: vi.fn(),
-  },
-  initialValues: undefined as Record<string, any> | undefined,
-  onValuesChange: undefined as
-    | ((changedValues: Record<string, unknown>) => void)
+  avatarProps: undefined as Record<string, unknown> | undefined,
+  fieldNames: [] as string[],
+  initialValues: undefined as Record<string, unknown> | undefined,
+  onFinish: undefined as
+    | ((values: Record<string, unknown>) => Promise<boolean>)
     | undefined,
-  dependencyProvince: { label: '浙江省', value: '330000' },
-  requestResults: {} as Record<string, any>,
+  setInitialState: vi.fn(),
+  success: vi.fn(),
 }));
 
-vi.mock('@ant-design/pro-components', async () => {
-  const React = await import('react');
-
-  const ProForm = ({
-    children,
-    formRef,
-    initialValues,
-    onValuesChange,
-  }: any) => {
-    if (formRef) {
-      formRef.current = mocks.form;
-    }
+vi.mock('@ant-design/pro-components', () => {
+  const field = ({ name }: { name: string }) => {
+    if (!mocks.fieldNames.includes(name)) mocks.fieldNames.push(name);
+    return <div data-field={name} />;
+  };
+  const ProForm = ({ children, initialValues, onFinish }: any) => {
     mocks.initialValues = initialValues;
-    mocks.onValuesChange = onValuesChange;
+    mocks.onFinish = onFinish;
     return <form>{children}</form>;
   };
 
-  ProForm.Group = ({ children }: any) => <div>{children}</div>;
-
   return {
     ProForm,
-    ProFormDependency: ({ children }: any) => (
-      <div>{children({ province: mocks.dependencyProvince })}</div>
-    ),
-    ProFormFieldSet: ({ children }: any) => <div>{children}</div>,
-    ProFormSelect: ({ name, params, request }: any) => {
-      React.useEffect(() => {
-        request?.(params).then((result: any) => {
-          mocks.requestResults[name] = result;
-        });
-      }, [name, params, request]);
-      return <div />;
-    },
-    ProFormText: () => <div />,
-    ProFormTextArea: () => <div />,
+    ProFormText: field,
+    ProFormTextArea: field,
   };
 });
 
+vi.mock('@umijs/max', () => ({
+  useIntl: () => ({
+    formatMessage: ({ defaultMessage }: { defaultMessage: string }) =>
+      defaultMessage,
+  }),
+  useModel: () => ({ setInitialState: mocks.setInitialState }),
+}));
+
 vi.mock('antd', () => ({
-  Button: ({ children }: any) => <button type="button">{children}</button>,
-  Input: (props: any) => <input {...props} />,
-  Upload: ({ children }: any) => <div>{children}</div>,
-  message: {
-    success: vi.fn(),
+  App: {
+    useApp: () => ({ message: { success: mocks.success } }),
   },
 }));
 
-vi.mock('@ant-design/icons', () => ({
-  UploadOutlined: () => <span />,
+vi.mock('@/components/Uploader', () => ({
+  AvatarUploader: (props: Record<string, unknown>) => {
+    mocks.avatarProps = props;
+    return <div data-testid="avatar-uploader" />;
+  },
 }));
 
 vi.mock('./index.style', () => ({
   default: () => ({
     styles: {
-      area_code: 'area-code',
       avatar: 'avatar',
       avatar_title: 'avatar-title',
       baseView: 'base-view',
-      button_view: 'button-view',
       left: 'left',
-      phone_number: 'phone-number',
       right: 'right',
     },
   }),
 }));
 
 vi.mock('../service', () => ({
-  queryCity: vi.fn(),
   queryCurrent: vi.fn(),
-  queryProvince: vi.fn(),
+  updateCurrent: vi.fn(),
 }));
 
-describe('BaseView geographic selects', () => {
+const currentUser = {
+  avatar: '',
+  createdAt: '2026-08-01T00:00:00.000Z',
+  email: 'admin@example.com',
+  fullName: 'Ant Design',
+  id: 1,
+  isSuperAdmin: true,
+  lastLoginAt: null,
+  name: 'Ant Design',
+  permissions: ['*'],
+  profile: 'Reusable project administrator',
+  roles: [],
+  status: true,
+  updatedAt: null,
+  username: 'admin',
+};
+
+describe('account basic settings', () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
     queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-      },
+      defaultOptions: { queries: { retry: false } },
     });
+    mocks.avatarProps = undefined;
+    mocks.fieldNames = [];
     mocks.initialValues = undefined;
-    mocks.onValuesChange = undefined;
-    mocks.dependencyProvince = { label: '浙江省', value: '330000' };
-    mocks.requestResults = {};
+    mocks.onFinish = undefined;
     vi.clearAllMocks();
+    vi.mocked(service.queryCurrent).mockResolvedValue({ data: currentUser });
+    vi.mocked(service.updateCurrent).mockResolvedValue(currentUser);
+  });
 
+  const renderView = () =>
+    render(
+      <QueryClientProvider client={queryClient}>
+        <BaseView />
+      </QueryClientProvider>,
+    );
+
+  it('keeps only email, nickname, and profile fields', async () => {
+    renderView();
+
+    await waitFor(() => {
+      expect(mocks.initialValues).toEqual({
+        email: 'admin@example.com',
+        name: 'Ant Design',
+        profile: 'Reusable project administrator',
+      });
+    });
+
+    expect(mocks.fieldNames).toEqual(['email', 'name', 'profile']);
+    expect(mocks.fieldNames).not.toEqual(
+      expect.arrayContaining([
+        'phone',
+        'country',
+        'province',
+        'city',
+        'address',
+      ]),
+    );
+  });
+
+  it('uses name initials when no avatar is configured', async () => {
+    renderView();
+
+    await waitFor(() => {
+      expect(mocks.avatarProps).toMatchObject({
+        fallbackText: 'AD',
+        initialPreviewUrl: undefined,
+        title: 'Change avatar',
+      });
+    });
+  });
+
+  it('keeps a configured avatar while retaining the text fallback', async () => {
     vi.mocked(service.queryCurrent).mockResolvedValue({
       data: {
-        address: '西湖区工专路 77 号',
-        avatar: '',
-        country: 'China',
-        email: 'antdesign@alipay.com',
-        geographic: {
-          province: { label: '浙江省', key: '330000' },
-          city: { label: '杭州市', key: '330100' },
-        },
-        group: '',
-        name: 'Ant Design',
-        notice: [],
-        notifyCount: 0,
-        phone: '0752-268888888',
-        signature: '',
-        tags: [],
-        title: '',
-        unreadCount: 0,
-        userid: '00000001',
+        ...currentUser,
+        avatar: '/avatar.png',
+        name: '张三',
       },
     });
-    vi.mocked(service.queryProvince).mockResolvedValue([
-      { key: '330000', label: '浙江省' },
-    ]);
-    vi.mocked(service.queryCity).mockResolvedValue([
-      { key: '330100', label: '杭州市' },
-    ]);
-  });
 
-  it('normalizes geographic initial values for labelInValue selects', async () => {
-    render(
-      <QueryClientProvider client={queryClient}>
-        <BaseView />
-      </QueryClientProvider>,
-    );
+    renderView();
 
     await waitFor(() => {
-      expect(mocks.initialValues?.province).toEqual({
-        label: '浙江省',
-        value: '330000',
-      });
-      expect(mocks.initialValues?.city).toEqual({
-        label: '杭州市',
-        value: '330100',
+      expect(mocks.avatarProps).toMatchObject({
+        fallbackText: '张三',
+        initialPreviewUrl: '/avatar.png',
       });
     });
   });
 
-  it('does not set incomplete geographic initial values', async () => {
-    vi.mocked(service.queryCurrent).mockResolvedValue({
-      data: {
-        address: '西湖区工专路 77 号',
-        avatar: '',
-        country: 'China',
-        email: 'antdesign@alipay.com',
-        geographic: {
-          province: { label: '浙江省' },
-          city: { label: '杭州市' },
-        },
-        group: '',
-        name: 'Ant Design',
-        notice: [],
-        notifyCount: 0,
-        phone: '0752-268888888',
-        signature: '',
-        tags: [],
-        title: '',
-        unreadCount: 0,
-        userid: '00000001',
-      } as any,
+  it('uses contextual feedback after submitting', async () => {
+    renderView();
+
+    await waitFor(() => expect(mocks.onFinish).toBeTypeOf('function'));
+    await mocks.onFinish?.({
+      email: 'new@example.com',
+      name: 'New Name',
+      profile: 'Updated profile',
     });
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <BaseView />
-      </QueryClientProvider>,
-    );
-
-    await waitFor(() => {
-      expect(mocks.initialValues?.name).toBe('Ant Design');
-      expect(mocks.initialValues?.province).toBeUndefined();
-      expect(mocks.initialValues?.city).toBeUndefined();
+    expect(service.updateCurrent).toHaveBeenCalledWith({
+      email: 'new@example.com',
+      fullName: 'New Name',
+      profile: 'Updated profile',
     });
+    expect(mocks.success).toHaveBeenCalledWith('Basic information updated');
   });
 
-  it('loads cities with the selected province value', async () => {
-    render(
-      <QueryClientProvider client={queryClient}>
-        <BaseView />
-      </QueryClientProvider>,
-    );
+  it('submits a newly uploaded avatar attachment', async () => {
+    renderView();
 
-    await waitFor(() => {
-      expect(service.queryCity).toHaveBeenCalledWith('330000');
+    await waitFor(() => expect(mocks.avatarProps).toBeDefined());
+    act(() => {
+      const onChange = mocks.avatarProps?.onChange as (
+        attachments: Array<{ id: number }>,
+      ) => void;
+      onChange([{ id: 88 }]);
     });
-  });
-
-  it('clears city when province changes', async () => {
-    render(
-      <QueryClientProvider client={queryClient}>
-        <BaseView />
-      </QueryClientProvider>,
-    );
-
-    await waitFor(() => {
-      expect(mocks.onValuesChange).toBeTypeOf('function');
+    await waitFor(() => expect(mocks.onFinish).toBeTypeOf('function'));
+    await mocks.onFinish?.({
+      email: 'admin@example.com',
+      name: 'Ant Design',
+      profile: 'Profile',
     });
 
-    mocks.onValuesChange?.({
-      province: { label: '河北省', value: '130000' },
-    });
-
-    expect(mocks.form.setFieldValue).toHaveBeenCalledWith('city', undefined);
-  });
-
-  it('returns label/value option arrays for geographic selects', async () => {
-    render(
-      <QueryClientProvider client={queryClient}>
-        <BaseView />
-      </QueryClientProvider>,
-    );
-
-    await waitFor(() => {
-      expect(mocks.requestResults.province).toEqual([
-        { label: '浙江省', value: '330000' },
-      ]);
-      expect(mocks.requestResults.city).toEqual([
-        { label: '杭州市', value: '330100' },
-      ]);
-    });
-  });
-
-  it('supports local mock name/id geographic responses', async () => {
-    vi.mocked(service.queryProvince).mockResolvedValue([
-      { id: '440000', name: '广东省' },
-    ]);
-    vi.mocked(service.queryCity).mockResolvedValue([
-      { id: '440300', name: '深圳市' },
-    ]);
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <BaseView />
-      </QueryClientProvider>,
-    );
-
-    await waitFor(() => {
-      expect(mocks.requestResults.province).toEqual([
-        { label: '广东省', value: '440000' },
-      ]);
-      expect(mocks.requestResults.city).toEqual([
-        { label: '深圳市', value: '440300' },
-      ]);
-    });
-  });
-
-  it('falls back to local city options when remote city data is empty', async () => {
-    mocks.dependencyProvince = { label: '江苏省', value: '320000' };
-    vi.mocked(service.queryCity).mockResolvedValue([]);
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <BaseView />
-      </QueryClientProvider>,
-    );
-
-    await waitFor(() => {
-      expect(service.queryCity).toHaveBeenCalledWith('320000');
-      expect(mocks.requestResults.city).toContainEqual({
-        label: '南京市',
-        value: '320100',
-      });
+    expect(service.updateCurrent).toHaveBeenCalledWith({
+      avatarAttachmentId: 88,
+      email: 'admin@example.com',
+      fullName: 'Ant Design',
+      profile: 'Profile',
     });
   });
 });

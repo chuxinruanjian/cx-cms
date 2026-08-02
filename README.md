@@ -164,6 +164,7 @@ npm run app:key      # 生成 AdonisJS APP_KEY
 npm run db:migrate   # 执行数据库迁移
 npm run db:rollback  # 回滚最近一批迁移
 npm run db:seed      # 初始化 RBAC 和首个超级管理员
+npm run uploads:cleanup # 清理过期上传会话和无引用临时文件
 npm run typecheck    # TypeScript 类型检查
 npm run lint         # 检查代码规范
 npm test             # 运行全部测试
@@ -171,6 +172,30 @@ npm run build        # 依次构建管理后台和 API 发布包
 npm run build:admin  # 后台构建到 apps/api/public/admin
 npm run build:api    # API 构建到 apps/api/build
 ```
+
+## 统一文件上传
+
+项目内置统一的私有文件上传系统，支持普通上传、自动分片、并发与重试、
+暂停/继续、断点续传、业务附件绑定、引用保护、幂等删除和临时文件清理。
+后台的“文件上传”菜单包含各类组件演示、上传任务、临时文件和资源管理。
+
+首次启用时执行迁移和权限种子：
+
+```bash
+npm run db:migrate
+npm run db:seed
+```
+
+本地文件保存到 `storage/uploads`，默认超过 20MB 自动分片。阈值、分片
+大小、并发数、重试数、各文件类型大小上限和临时有效期均由
+`apps/api/.env` 配置。生产环境需要定时执行：
+
+```bash
+npm run uploads:cleanup
+```
+
+完整的接口、数据库、生命周期、业务接入示例、安全规范、cron 和 OSS/S3
+适配说明见 [统一文件上传文档](docs/file-uploads.md)。
 
 ## 构建与部署
 
@@ -290,7 +315,7 @@ AI 开发前请先阅读根目录 `AGENTS.md`；修改管理后台时还需要�
 
 | 表名 | 用途 |
 | --- | --- |
-| `admin_users` | 后台用户、状态、超级管理员标记和最后登录信息 |
+| `admin_users` | 后台用户、基本资料、头像、状态、超级管理员标记和最后登录信息 |
 | `admin_access_tokens` | 后台 Bearer Token，仅用于身份认证 |
 | `admin_roles` | 角色 |
 | `admin_permissions` | 原子权限 |
@@ -301,12 +326,17 @@ AI 开发前请先阅读根目录 `AGENTS.md`；修改管理后台时还需要�
 
 - `POST /api/v1/admin/auth/login`
 - `GET /api/v1/admin/auth/me`
+- `PATCH /api/v1/admin/auth/me`
 - `DELETE /api/v1/admin/auth/logout`
 
 登录请求使用 `username`、`password` 和可选的 `remember`。普通登录令牌有效期
 为 12 小时，记住登录为 30 天。禁用用户不能登录。角色和权限不会固化到
 Token 中，每个受保护请求都从数据库实时读取，因此修改角色、禁用角色或
 禁用权限后会立即生效。
+
+当前管理员可通过 `PATCH /api/v1/admin/auth/me` 更新昵称、邮箱和个人简介。
+头像先通过统一上传组件上传，再将 `avatarAttachmentId` 随基本资料提交；接口
+会把图片绑定到当前管理员。没有配置头像时，后台统一显示由昵称生成的文字头像。
 
 RBAC 管理接口位于 `/api/v1/admin/users`、`/api/v1/admin/roles` 和
 `/api/v1/admin/permissions`。接口先经过 Bearer Token 认证，再通过

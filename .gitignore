@@ -30,6 +30,8 @@ storage/uploads/videos/*
 !storage/uploads/videos/.gitkeep
 storage/uploads/files/*
 !storage/uploads/files/.gitkeep
+storage/uploads/.chunks/
+storage/uploads/.test/
 storage/certificates/payment/*
 !storage/certificates/payment/.gitkeep
 
