@@ -8,7 +8,18 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class AdminAccessTokenSchema extends BaseModel {
-  static $columns = ['abilities', 'createdAt', 'expiresAt', 'hash', 'id', 'lastUsedAt', 'name', 'tokenableId', 'type', 'updatedAt'] as const
+  static $columns = [
+    'abilities',
+    'createdAt',
+    'expiresAt',
+    'hash',
+    'id',
+    'lastUsedAt',
+    'name',
+    'tokenableId',
+    'type',
+    'updatedAt',
+  ] as const
   $columns = AdminAccessTokenSchema.$columns
   @column()
   declare abilities: string
@@ -32,8 +43,133 @@ export class AdminAccessTokenSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class AdminAttachmentRelationSchema extends BaseModel {
+  static $columns = [
+    'attachmentId',
+    'businessId',
+    'businessType',
+    'createdAt',
+    'fieldName',
+    'id',
+    'sort',
+  ] as const
+  $columns = AdminAttachmentRelationSchema.$columns
+  @column()
+  declare attachmentId: number
+  @column()
+  declare businessId: string
+  @column()
+  declare businessType: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare fieldName: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare sort: number
+}
+
+export class AdminAttachmentSchema extends BaseModel {
+  static $columns = [
+    'boundAt',
+    'createdAt',
+    'deletedAt',
+    'duration',
+    'errorMessage',
+    'expiresAt',
+    'extension',
+    'fileType',
+    'hash',
+    'height',
+    'id',
+    'isComplete',
+    'lastUsedAt',
+    'mimeType',
+    'objectKey',
+    'originalName',
+    'parentAttachmentId',
+    'size',
+    'status',
+    'storageDisk',
+    'storagePath',
+    'updatedAt',
+    'uploadMode',
+    'uploadToken',
+    'uploaderId',
+    'url',
+    'uuid',
+    'width',
+  ] as const
+  $columns = AdminAttachmentSchema.$columns
+  @column.dateTime()
+  declare boundAt: DateTime | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime()
+  declare deletedAt: DateTime | null
+  @column()
+  declare duration: number | null
+  @column()
+  declare errorMessage: string | null
+  @column.dateTime()
+  declare expiresAt: DateTime | null
+  @column()
+  declare extension: string | null
+  @column()
+  declare fileType: string
+  @column()
+  declare hash: string | null
+  @column()
+  declare height: number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare isComplete: boolean
+  @column.dateTime()
+  declare lastUsedAt: DateTime | null
+  @column()
+  declare mimeType: string
+  @column()
+  declare objectKey: string | null
+  @column()
+  declare originalName: string
+  @column()
+  declare parentAttachmentId: number | null
+  @column()
+  declare size: bigint | number
+  @column()
+  declare status: string
+  @column()
+  declare storageDisk: string
+  @column()
+  declare storagePath: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare uploadMode: string
+  @column()
+  declare uploadToken: string
+  @column()
+  declare uploaderId: number
+  @column()
+  declare url: string | null
+  @column()
+  declare uuid: string
+  @column()
+  declare width: number | null
+}
+
 export class AdminPermissionSchema extends BaseModel {
-  static $columns = ['code', 'createdAt', 'description', 'id', 'name', 'status', 'updatedAt'] as const
+  static $columns = [
+    'code',
+    'createdAt',
+    'description',
+    'id',
+    'name',
+    'status',
+    'updatedAt',
+  ] as const
   $columns = AdminPermissionSchema.$columns
   @column()
   declare code: string
@@ -67,7 +203,15 @@ export class AdminRolePermissionSchema extends BaseModel {
 }
 
 export class AdminRoleSchema extends BaseModel {
-  static $columns = ['code', 'createdAt', 'description', 'id', 'name', 'status', 'updatedAt'] as const
+  static $columns = [
+    'code',
+    'createdAt',
+    'description',
+    'id',
+    'name',
+    'status',
+    'updatedAt',
+  ] as const
   $columns = AdminRoleSchema.$columns
   @column()
   declare code: string
@@ -83,6 +227,99 @@ export class AdminRoleSchema extends BaseModel {
   declare status: boolean
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+}
+
+export class AdminUploadChunkSchema extends BaseModel {
+  static $columns = [
+    'chunkIndex',
+    'etag',
+    'hash',
+    'id',
+    'isComplete',
+    'size',
+    'storagePath',
+    'uploadSessionId',
+    'uploadedAt',
+  ] as const
+  $columns = AdminUploadChunkSchema.$columns
+  @column()
+  declare chunkIndex: number
+  @column()
+  declare etag: string | null
+  @column()
+  declare hash: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare isComplete: boolean
+  @column()
+  declare size: number
+  @column()
+  declare storagePath: string
+  @column()
+  declare uploadSessionId: number
+  @column.dateTime()
+  declare uploadedAt: DateTime
+}
+
+export class AdminUploadSessionSchema extends BaseModel {
+  static $columns = [
+    'attachmentId',
+    'chunkSize',
+    'chunkTotal',
+    'createdAt',
+    'errorMessage',
+    'expiresAt',
+    'fileHash',
+    'fileSize',
+    'id',
+    'mimeType',
+    'originalName',
+    'status',
+    'storageUploadId',
+    'updatedAt',
+    'uploadId',
+    'uploadToken',
+    'uploadedChunks',
+    'uploaderId',
+  ] as const
+  $columns = AdminUploadSessionSchema.$columns
+  @column()
+  declare attachmentId: number
+  @column()
+  declare chunkSize: number
+  @column()
+  declare chunkTotal: number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare errorMessage: string | null
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column()
+  declare fileHash: string | null
+  @column()
+  declare fileSize: bigint | number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare mimeType: string
+  @column()
+  declare originalName: string
+  @column()
+  declare status: string
+  @column()
+  declare storageUploadId: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare uploadId: string
+  @column()
+  declare uploadToken: string
+  @column()
+  declare uploadedChunks: number
+  @column()
+  declare uploaderId: number
 }
 
 export class AdminUserRoleSchema extends BaseModel {
@@ -101,7 +338,21 @@ export class AdminUserRoleSchema extends BaseModel {
 }
 
 export class AdminUserSchema extends BaseModel {
-  static $columns = ['avatar', 'createdAt', 'email', 'fullName', 'id', 'isSuperAdmin', 'lastLoginAt', 'lastLoginIp', 'password', 'status', 'updatedAt', 'username'] as const
+  static $columns = [
+    'avatar',
+    'createdAt',
+    'email',
+    'fullName',
+    'id',
+    'isSuperAdmin',
+    'lastLoginAt',
+    'lastLoginIp',
+    'password',
+    'profile',
+    'status',
+    'updatedAt',
+    'username',
+  ] as const
   $columns = AdminUserSchema.$columns
   @column()
   declare avatar: string | null
@@ -121,6 +372,8 @@ export class AdminUserSchema extends BaseModel {
   declare lastLoginIp: string | null
   @column({ serializeAs: null })
   declare password: string
+  @column()
+  declare profile: string | null
   @column()
   declare status: boolean
   @column.dateTime({ autoCreate: true, autoUpdate: true })

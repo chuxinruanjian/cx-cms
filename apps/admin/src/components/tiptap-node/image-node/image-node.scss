@@ -1,0 +1,109 @@
+.tiptap.ProseMirror {
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  p > img {
+    display: inline-block;
+  }
+
+  > img:not([data-type="emoji"] img) {
+    margin: 2rem 0;
+    outline: 0.125rem solid transparent;
+    border-radius: var(--tt-radius-xs, 0.25rem);
+  }
+
+  > [data-resize-container][data-node="image"] {
+    display: inline-flex !important;
+    width: fit-content;
+    max-width: 100%;
+    margin: 2rem 0;
+    background-color: transparent;
+    border-radius: 0;
+    outline: none;
+
+    [data-resize-wrapper] {
+      max-width: 100%;
+      line-height: 0;
+      border-radius: var(--tt-radius-xs, 0.25rem);
+      outline: 0.125rem solid transparent;
+      outline-offset: 0.125rem;
+    }
+
+    img {
+      margin: 0;
+      border-radius: inherit;
+    }
+  }
+
+  img:not([data-type="emoji"] img).ProseMirror-selectednode {
+    outline-color: var(--tt-brand-color-500);
+  }
+
+  > [data-resize-container][data-node="image"].ProseMirror-selectednode
+    [data-resize-wrapper],
+  > [data-resize-container][data-node="image"][data-resize-state="true"]
+    [data-resize-wrapper] {
+    outline-color: var(--tt-brand-color-500);
+  }
+
+  [data-resize-container][data-node="image"] [data-resize-handle] {
+    z-index: 2;
+    width: 0.75rem;
+    height: 0.75rem;
+    background: var(--tt-brand-color-500);
+    border: 0.125rem solid var(--tt-bg-color);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px var(--tt-brand-color-500);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  [data-resize-container][data-node="image"].ProseMirror-selectednode
+    [data-resize-handle],
+  [data-resize-container][data-node="image"][data-resize-state="true"]
+    [data-resize-handle] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  [data-resize-handle="top-left"] {
+    cursor: nwse-resize;
+    transform: translate(-50%, -50%);
+  }
+
+  [data-resize-handle="top-right"] {
+    cursor: nesw-resize;
+    transform: translate(50%, -50%);
+  }
+
+  [data-resize-handle="bottom-left"] {
+    cursor: nesw-resize;
+    transform: translate(-50%, 50%);
+  }
+
+  [data-resize-handle="bottom-right"] {
+    cursor: nwse-resize;
+    transform: translate(50%, 50%);
+  }
+
+  &[contenteditable="false"] [data-resize-handle] {
+    display: none;
+  }
+
+  // Thread image handling
+  .tiptap-thread:has(> img) {
+    margin: 2rem 0;
+
+    img {
+      outline: 0.125rem solid transparent;
+      border-radius: var(--tt-radius-xs, 0.25rem);
+    }
+  }
+
+  .tiptap-thread img {
+    margin: 0;
+  }
+}

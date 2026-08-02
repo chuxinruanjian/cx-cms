@@ -287,6 +287,107 @@ export default [
     component: './chatbot',
   },
   {
+    path: '/ui-standard',
+    name: 'ui-standard',
+    icon: 'layout',
+    access: 'canAdmin',
+    routes: [
+      {
+        path: '/ui-standard',
+        redirect: '/ui-standard/list',
+      },
+      {
+        path: '/ui-standard/list',
+        name: 'list',
+        component: './ui-standard/list',
+      },
+      {
+        path: '/ui-standard/create',
+        hideInMenu: true,
+        component: './ui-standard/form',
+      },
+      {
+        path: '/ui-standard/edit/:id',
+        hideInMenu: true,
+        component: './ui-standard/form',
+      },
+      {
+        path: '/ui-standard/detail/:id',
+        hideInMenu: true,
+        component: './ui-standard/detail',
+      },
+    ],
+  },
+  {
+    path: '/uploads',
+    name: 'uploads',
+    icon: 'cloudUpload',
+    access: 'canManageFiles',
+    routes: [
+      { path: '/uploads', component: './uploads' },
+      {
+        path: '/uploads/avatar',
+        name: 'avatar',
+        access: 'canUploadFiles',
+        component: './uploads/demo',
+      },
+      {
+        path: '/uploads/square',
+        name: 'square',
+        access: 'canUploadFiles',
+        component: './uploads/demo',
+      },
+      {
+        path: '/uploads/cover',
+        name: 'cover',
+        access: 'canUploadFiles',
+        component: './uploads/demo',
+      },
+      {
+        path: '/uploads/multi',
+        name: 'multi',
+        access: 'canUploadFiles',
+        component: './uploads/demo',
+      },
+      {
+        path: '/uploads/video',
+        name: 'video',
+        access: 'canUploadFiles',
+        component: './uploads/demo',
+      },
+      {
+        path: '/uploads/files',
+        name: 'files',
+        access: 'canUploadFiles',
+        component: './uploads/demo',
+      },
+      {
+        path: '/uploads/multipart',
+        name: 'multipart',
+        access: 'canUploadFiles',
+        component: './uploads/demo',
+      },
+      {
+        path: '/uploads/tasks',
+        name: 'tasks',
+        access: 'canViewFiles',
+        component: './uploads/tasks',
+      },
+      {
+        path: '/uploads/temporary',
+        name: 'temporary',
+        access: 'canCleanupFiles',
+        component: './uploads/temporary',
+      },
+      {
+        path: '/uploads/resources',
+        name: 'resources',
+        access: 'canViewFiles',
+        component: './uploads/resources',
+      },
+    ],
+  },
+  {
     path: '/',
     redirect: '/dashboard/analysis',
   },

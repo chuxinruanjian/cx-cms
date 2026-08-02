@@ -5,6 +5,9 @@ import network from './zh-CN/network';
 import pages from './zh-CN/pages';
 import settingDrawer from './zh-CN/settingDrawer';
 import settings from './zh-CN/settings';
+import tiptap from './zh-CN/tiptap';
+import uiStandard from './zh-CN/uiStandard';
+import uploader from './zh-CN/uploader';
 
 export default {
   'navBar.lang': '语言',
@@ -17,6 +20,9 @@ export default {
   ...menu,
   ...settingDrawer,
   ...settings,
+  ...tiptap,
   ...network,
   ...component,
+  ...uiStandard,
+  ...uploader,
 };

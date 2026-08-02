@@ -39,20 +39,11 @@ const useStyles = createStyles(({ token }) => {
     },
     avatar: {
       width: '144px',
-      height: '144px',
       marginBottom: '12px',
-      overflow: 'hidden',
-      img: { width: '100%' },
-    },
-    button_view: {
-      width: '144px',
-      textAlign: 'center',
-    },
-    area_code: {
-      width: '72px',
-    },
-    phone_number: {
-      width: '214px',
+      '.ant-upload-wrapper .ant-upload-select': {
+        width: '144px !important',
+        height: '144px !important',
+      },
     },
   };
 });

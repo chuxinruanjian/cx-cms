@@ -24,16 +24,10 @@ vi.mock('@/services/adminAuth', () => ({
 
 vi.mock('@/components', () => ({
   AvatarDropdown: () => null,
-  DocLink: () => null,
   ErrorBoundary: ({ children }: any) => children,
   Footer: () => null,
   LangDropdown: () => null,
   OfflineBanner: () => null,
-  VersionDropdown: () => null,
-}));
-
-vi.mock('@ant-design/pro-components', () => ({
-  SettingDrawer: () => null,
 }));
 
 vi.mock('@ant-design/icons', () => ({
@@ -72,7 +66,7 @@ describe('app getInitialState', () => {
       name: 'Test User',
       permissions: ['*'],
     });
-    expect(state.settingDrawerOpen).toBe(false);
+    expect(state).not.toHaveProperty('settingDrawerOpen');
     expect(state.fetchUserInfo).toBeDefined();
   });
 
@@ -128,6 +122,27 @@ describe('app getInitialState', () => {
     const state = await getInitialState();
 
     expect(state.settings).toEqual({ navTheme: 'light' });
+  });
+
+  it('should keep only language action and use a text avatar fallback', async () => {
+    const { layout } = await import('./app');
+    const config = layout({
+      initialState: {
+        currentUser: {
+          name: '张三',
+          avatar: null,
+        },
+        settings: {},
+      },
+    } as any);
+
+    expect(config.childrenRender).toBeUndefined();
+    expect((config.actionsRender as any)({})).toHaveLength(1);
+    expect(config.avatarProps).toMatchObject({
+      children: '张三',
+      src: undefined,
+      title: '张三',
+    });
   });
 
   it('fetchUserInfo should return user data on success', async () => {

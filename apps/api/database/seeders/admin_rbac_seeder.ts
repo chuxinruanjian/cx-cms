@@ -17,6 +17,11 @@ const permissions = [
   ['创建权限', 'admin.permissions.create'],
   ['更新权限', 'admin.permissions.update'],
   ['删除权限', 'admin.permissions.delete'],
+  ['上传文件', 'admin.attachments.upload'],
+  ['查看文件', 'admin.attachments.view'],
+  ['绑定和排序文件', 'admin.attachments.bind'],
+  ['删除文件', 'admin.attachments.delete'],
+  ['清理临时文件', 'admin.attachments.cleanup'],
 ] as const
 
 export default class AdminRbacSeeder extends BaseSeeder {

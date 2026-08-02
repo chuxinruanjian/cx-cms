@@ -19,7 +19,8 @@
     "app:key": "node ace generate:key",
     "db:migrate": "node ace migration:run && prettier --write database/schema.ts",
     "db:rollback": "node ace migration:rollback && prettier --write database/schema.ts",
-    "db:seed": "node ace db:seed"
+    "db:seed": "node ace db:seed",
+    "uploads:cleanup": "node ace uploads:cleanup"
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",
@@ -36,6 +37,7 @@
     "#providers/*": "./providers/*.js",
     "#policies/*": "./app/policies/*.js",
     "#abilities/*": "./app/abilities/*.js",
+    "#types/*": "./app/types/*.js",
     "#database/*": "./database/*.js",
     "#tests/*": "./tests/*.js",
     "#start/*": "./start/*.js",

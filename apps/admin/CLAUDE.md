@@ -69,6 +69,44 @@ Run `/antd` in Claude Code for any antd-related work. It provides access to `@an
 
 Each page dir: `index.tsx`, optional `service.ts`, `_mock.ts`, `data.d.ts`, style files. Keep page-specific code with the page.
 
+## Admin UI Standard
+
+Use `src/pages/ui-standard` and `../../docs/admin-ui-standards.md` as the required
+blueprint for new business pages:
+
+- Wrap business pages with `@/components/AdminPage` so their outer boundary
+  matches the `GridContent` used by `dashboard/analysis`. Keep compact titles
+  and breadcrumbs; do not add `PageContainer` padding or page descriptions.
+- List row actions use one bordered `MoreOutlined` dropdown button. Every menu
+  item needs a semantic icon and concise text such as "详情".
+- Filters are always visible, use `Form layout="vertical"`, and put labels above
+  controls. Do not add a filter-card title; place the reset/search row below the
+  fields and align it right.
+- Create/import actions are on the left of the list toolbar; view controls are
+  the native `ProTable` refresh, density, and column-setting icons on the right.
+- More than six visible create/edit fields require a dedicated page. Six or
+  fewer normally use a modal.
+- Dedicated form page actions such as back and save belong in the top-right
+  page header.
+- Detail pages are wide-screen-first and responsive.
+- Every new label, action, status, validation hint, and message needs both
+  `zh-CN` and `en-US` locale entries.
+- Keep the global header limited to language switching and the user dropdown.
+  Do not add documentation/version actions or a floating SettingDrawer. User
+  avatars must fall back to text initials when no image is available.
+- Business forms import upload controls from `src/components/Uploader`. Use
+  `MultiImageUploader` for a sortable picture-card photo wall and
+  `AvatarUploader` for mandatory 1:1 avatar cropping; do not rebuild these flows
+  with page-local `Upload` code.
+- Rich-text fields import `TiptapEditor` from `src/components`. The
+  `demoImageUpload` helper is restricted to the static UI-standard blueprint.
+  A business image adapter must use the shared upload architecture and return a
+  durable URL that an HTML `<img>` can render without a bearer header; never
+  save data URLs, blob URLs, or protected admin attachment URLs as business HTML.
+  HTML sanitizers and renderers must preserve Tiptap `span` color/font-size
+  styles plus image `width`/`height` attributes so text styling and resized
+  images survive a save/load round trip.
+
 # CLAUDE.md
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.

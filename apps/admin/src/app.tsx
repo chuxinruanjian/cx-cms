@@ -1,21 +1,19 @@
 import { LinkOutlined } from '@ant-design/icons';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
-import { SettingDrawer } from '@ant-design/pro-components';
 import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
 import { history, Link } from '@umijs/max';
 import React from 'react';
 
 import {
   AvatarDropdown,
-  DocLink,
   ErrorBoundary,
   Footer,
   LangDropdown,
   OfflineBanner,
-  VersionDropdown,
 } from '@/components';
 import { getCurrentAdmin } from '@/services/adminAuth';
 import type { AdminAuthUser } from '@/types/admin';
+import { getAvatarText } from '@/utils/avatar';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 
@@ -30,7 +28,6 @@ export async function getInitialState(): Promise<{
   currentUser?: AdminAuthUser;
   loading?: boolean;
   fetchUserInfo?: () => Promise<AdminAuthUser | undefined>;
-  settingDrawerOpen?: boolean;
 }> {
   const fetchUserInfo = async () => {
     try {
@@ -53,21 +50,23 @@ export async function getInitialState(): Promise<{
       fetchUserInfo,
       currentUser,
       settings: defaultSettings as Partial<LayoutSettings>,
-      settingDrawerOpen: false,
     };
   }
   return {
     fetchUserInfo,
     settings: defaultSettings as Partial<LayoutSettings>,
-    settingDrawerOpen: false,
   };
 }
 
 // ProLayout 支持的api https://procomponents.ant.design/components/layout
-export const layout: RunTimeLayoutConfig = ({
-  initialState,
-  setInitialState,
-}) => {
+export const layout: RunTimeLayoutConfig = ({ initialState }) => {
+  const currentUser = initialState?.currentUser;
+  const displayName =
+    currentUser?.name ||
+    currentUser?.fullName ||
+    currentUser?.username ||
+    '管理员';
+
   return {
     menuItemRender: (item, dom) => {
       if (item.path) {
@@ -84,15 +83,12 @@ export const layout: RunTimeLayoutConfig = ({
       // `locale` prop is a locale string, so narrow to the boolean toggle here.
       const localeEnabled =
         (initialState?.settings as { locale?: boolean })?.locale !== false;
-      return [
-        <DocLink key="doc" />,
-        <VersionDropdown key="version" />,
-        localeEnabled && <LangDropdown key="lang" />,
-      ].filter(Boolean);
+      return localeEnabled ? [<LangDropdown key="lang" />] : [];
     },
     avatarProps: {
-      src: initialState?.currentUser?.avatar,
-      title: initialState?.currentUser?.name,
+      src: currentUser?.avatar || undefined,
+      title: displayName,
+      children: getAvatarText(displayName),
       render: (_, avatarChildren) => (
         <AvatarDropdown>{avatarChildren}</AvatarDropdown>
       ),
@@ -144,33 +140,6 @@ export const layout: RunTimeLayoutConfig = ({
     menuHeaderRender: undefined,
     // 自定义 403 页面
     // unAccessible: <div>unAccessible</div>,
-    // 增加一个 loading 的状态
-    childrenRender: (children) => {
-      // if (initialState?.loading) return <PageLoading />;
-      return (
-        <>
-          {children}
-          <SettingDrawer
-            disableUrlParams
-            enableDarkTheme
-            collapse={initialState?.settingDrawerOpen}
-            onCollapseChange={(open) => {
-              setInitialState((s) => ({
-                ...s,
-                settingDrawerOpen: open,
-              }));
-            }}
-            settings={initialState?.settings}
-            onSettingChange={(settings) => {
-              setInitialState((s) => ({
-                ...s,
-                settings,
-              }));
-            }}
-          />
-        </>
-      );
-    },
     ...initialState?.settings,
   };
 };

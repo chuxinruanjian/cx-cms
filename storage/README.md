@@ -5,6 +5,7 @@ This directory contains runtime data shared by the applications:
 - `uploads/images`: uploaded images
 - `uploads/videos`: uploaded videos
 - `uploads/files`: other uploaded files
+- `uploads/.chunks`: incomplete multipart chunks, removed by abort/expiry cleanup
 - `database`: local SQLite databases
 - `logs`: application logs
 - `certificates/payment`: private payment certificates and keys

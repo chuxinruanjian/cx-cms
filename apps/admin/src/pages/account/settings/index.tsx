@@ -1,4 +1,5 @@
 import { GridContent } from '@ant-design/pro-components';
+import { useIntl } from '@umijs/max';
 import { Menu } from 'antd';
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import BaseView from './components/base';
@@ -12,17 +13,6 @@ type SettingsState = {
   mode: 'inline' | 'horizontal';
   selectKey: SettingsStateKeys;
 };
-
-const menuMap: Record<string, React.ReactNode> = {
-  base: '基本设置',
-  security: '安全设置',
-  binding: '账号绑定',
-  notification: '新消息通知',
-};
-const menuItems = Object.keys(menuMap).map((item) => ({
-  key: item,
-  label: menuMap[item],
-}));
 
 const SettingsContent: React.FC<{ selectKey: SettingsStateKeys }> = ({
   selectKey,
@@ -42,12 +32,35 @@ const SettingsContent: React.FC<{ selectKey: SettingsStateKeys }> = ({
 };
 
 const Settings: React.FC = () => {
+  const intl = useIntl();
   const { styles } = useStyles();
   const [initConfig, setInitConfig] = useState<SettingsState>({
     mode: 'inline',
     selectKey: 'base',
   });
   const dom = useRef<HTMLDivElement>(null);
+  const menuMap: Record<SettingsStateKeys, React.ReactNode> = {
+    base: intl.formatMessage({
+      id: 'app.settings.menuMap.basic',
+      defaultMessage: 'Basic Settings',
+    }),
+    security: intl.formatMessage({
+      id: 'app.settings.menuMap.security',
+      defaultMessage: 'Security Settings',
+    }),
+    binding: intl.formatMessage({
+      id: 'app.settings.menuMap.binding',
+      defaultMessage: 'Account Binding',
+    }),
+    notification: intl.formatMessage({
+      id: 'app.settings.menuMap.notification',
+      defaultMessage: 'New Message Notification',
+    }),
+  };
+  const menuItems = Object.entries(menuMap).map(([key, label]) => ({
+    key,
+    label,
+  }));
 
   const resize = () => {
     requestAnimationFrame(() => {

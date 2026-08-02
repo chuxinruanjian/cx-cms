@@ -1,22 +1,5 @@
-import { request } from '@umijs/max';
-import type { CurrentUser, GeographicItemType } from './data';
+import { getCurrentAdmin, updateCurrentAdmin } from '@/services/adminAuth';
 
-export async function queryCurrent(): Promise<{ data: CurrentUser }> {
-  return request('/api/accountSettingCurrentUser');
-}
+export const queryCurrent = async () => ({ data: await getCurrentAdmin() });
 
-export async function queryProvince(): Promise<GeographicItemType[]> {
-  return request('/api/geographic/province').then(({ data }) => data);
-}
-
-export async function queryCity(
-  province: string,
-): Promise<GeographicItemType[]> {
-  return request(`/api/geographic/city/${encodeURIComponent(province)}`).then(
-    ({ data }) => data,
-  );
-}
-
-export async function query() {
-  return request('/api/users');
-}
+export const updateCurrent = updateCurrentAdmin;

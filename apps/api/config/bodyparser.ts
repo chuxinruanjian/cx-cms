@@ -1,4 +1,5 @@
 import { defineConfig } from '@adonisjs/core/bodyparser'
+import env from '#start/env'
 
 const bodyParserConfig = defineConfig({
   /**
@@ -66,7 +67,7 @@ const bodyParserConfig = defineConfig({
     /**
      * Maximum accepted payload size for multipart requests.
      */
-    limit: '20mb',
+    limit: `${env.get('UPLOAD_NORMAL_MAX_MB', 20) + 1}mb`,
 
     /**
      * Content types handled by the multipart parser.

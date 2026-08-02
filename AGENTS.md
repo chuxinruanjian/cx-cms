@@ -23,6 +23,7 @@ cx-cms/
 │   │   ├── videos/          # Uploaded videos; runtime-only
 │   │   └── files/           # Other uploads; runtime-only
 │   └── certificates/payment/# Payment certificates/keys; secret, runtime-only
+├── docs/                     # Cross-application architecture and integration guides
 ├── package.json             # npm workspace commands
 └── AGENTS.md                # Repository-wide instructions (this file)
 ```
@@ -56,6 +57,7 @@ Run commands from the repository root unless noted otherwise.
 - `npm run db:migrate`: apply Lucid migrations.
 - `npm run db:rollback`: roll back the latest Lucid migration batch.
 - `npm run db:seed`: initialize RBAC permissions and the first super administrator.
+- `npm run uploads:cleanup`: delete expired multipart sessions and unbound temporary files.
 
 Before finishing a change, run the smallest relevant checks. For cross-cutting
 changes, run typecheck, tests, and builds for every affected workspace.
@@ -85,6 +87,31 @@ changes, run typecheck, tests, and builds for every affected workspace.
 - Permission codes use dot-separated lowercase names such as
   `admin.roles.update`. Protect management routes with the named `adminRbac`
   middleware instead of duplicating role checks in controllers.
+- File tables use `admin_attachments`, `admin_attachment_relations`,
+  `admin_upload_sessions`, and `admin_upload_chunks`. Business tables store
+  attachment IDs or bind through `AttachmentService`; they never store local
+  storage paths as their only file reference.
+- All upload scenarios use the services under `app/services/upload`. Business
+  code must use `StorageManager`, never a concrete OSS/S3 SDK directly.
+- Frontend upload scenarios use `apps/admin/src/components/Uploader` and its
+  shared task manager. Do not implement page-specific upload requests, retry, or
+  deletion state. Multi-image fields use the shared `picture-card` photo wall;
+  avatar fields use `AvatarUploader` and keep its mandatory 1:1 crop flow.
+- Rich-text HTML sanitizers and renderers must preserve Tiptap `span`
+  `color`/`font-size` styles and image `width`/`height` attributes. Removing
+  them breaks font formatting and resized-image persistence.
+- Rich-text fields use `apps/admin/src/components/TiptapEditor`. The
+  `demoImageUpload` data-URL adapter is only for the static `/ui-standard/create`
+  blueprint. Business rich-text images must integrate through the shared upload
+  architecture and persist a durable browser-renderable URL plus attachment
+  identity; never persist demo data URLs, blob URLs, or the bearer-protected
+  admin attachment content route inside business HTML.
+- Uploaded files start as `temporary` and become `active` only after a successful
+  business bind. Schedule `npm run uploads:cleanup` to remove expired temporary
+  files and multipart sessions.
+- `POST /attachments/bind` synchronizes the complete attachment set for one
+  business type, ID, and field. Send an empty list to clear the field; never
+  mutate `admin_attachment_relations` directly from a controller.
 
 ## Frontend rules
 
@@ -108,6 +135,27 @@ changes, run typecheck, tests, and builds for every affected workspace.
   build runs.
 - Admin is always hosted at `/admin/` and builds into `apps/api/public/admin`.
   Do not make either path environment-configurable.
+- New admin list, form, and detail pages follow `docs/admin-ui-standards.md`
+  and the live blueprint under `apps/admin/src/pages/ui-standard`.
+- List row actions use one bordered `MoreOutlined` dropdown button; every menu
+  item has an icon and concise copy such as "详情". Filters stay expanded with
+  vertical labels and no filter-card title. Reset/search actions sit below the
+  fields and align right.
+- List tables use the native `ProTable` refresh, density, and column-setting
+  controls. Create/import actions belong on the left side of the toolbar.
+- Create/edit forms with more than six visible fields use a dedicated page.
+  Forms with six or fewer fields normally use a modal. Detail pages use a
+  responsive wide-screen-first layout.
+- Dedicated create/edit page actions such as back and save belong in the
+  top-right page header.
+- Business pages use `@/components/AdminPage` for the same `GridContent`
+  boundary as `dashboard/analysis`, plus a compact title and breadcrumbs.
+  Do not add `PageContainer` padding or page descriptions. All new UI copy
+  requires both `zh-CN` and `en-US` entries.
+- The global header contains only the language switcher and user dropdown.
+  Do not restore documentation/version buttons or the floating SettingDrawer.
+  User avatars display the configured image and fall back to initials derived
+  from the displayed name.
 
 ## Runtime storage and secrets
 

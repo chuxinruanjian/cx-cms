@@ -1,0 +1,80 @@
+.tiptap-text-color-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  padding-bottom: 0.125rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.tiptap-text-color-icon::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 0.1875rem;
+  background: var(--tiptap-current-text-color, currentColor);
+  border-radius: 999px;
+  content: '';
+}
+
+.tiptap-text-color-options {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem;
+}
+
+.tiptap-text-color-swatch,
+.tiptap-text-color-custom {
+  position: relative;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: 0 0 1.5rem;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+  border: 2px solid var(--tt-bg-color);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--tt-border-color);
+  cursor: pointer;
+}
+
+.tiptap-text-color-swatch:hover,
+.tiptap-text-color-swatch:focus-visible,
+.tiptap-text-color-swatch[data-active-state='on'],
+.tiptap-text-color-custom:hover,
+.tiptap-text-color-custom:focus-within {
+  outline: 2px solid var(--tt-brand-color-500);
+  outline-offset: 2px;
+}
+
+.tiptap-text-color-swatch:disabled,
+.tiptap-text-color-custom:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.tiptap-text-color-custom input {
+  position: absolute;
+  inset: -0.25rem;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+}
+
+.tiptap-text-color-remove {
+  margin-left: 0.125rem;
+}
+
+@media screen and (max-width: 480px) {
+  .tiptap-text-color-options {
+    padding: 0;
+  }
+}
