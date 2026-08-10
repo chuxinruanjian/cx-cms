@@ -1,5 +1,5 @@
-import AdminAttachment from '#models/admin_attachment'
-import AdminUploadSession from '#models/admin_upload_session'
+import Attachment from '#models/attachment'
+import UploadSession from '#models/upload_session'
 import AttachmentService from '#services/upload/attachment_service'
 import UploadSessionService from '#services/upload/upload_session_service'
 import logger from '@adonisjs/core/services/logger'
@@ -8,7 +8,7 @@ import { DateTime } from 'luxon'
 export default class UploadCleanupService {
   static async run() {
     const now = DateTime.now()
-    const sessions = await AdminUploadSession.query()
+    const sessions = await UploadSession.query()
       .whereIn('status', ['initialized', 'uploading', 'failed'])
       .where('expires_at', '<', now.toSQL()!)
     let sessionsCleaned = 0
@@ -28,7 +28,7 @@ export default class UploadCleanupService {
       }
     }
 
-    const attachments = await AdminAttachment.query()
+    const attachments = await Attachment.query()
       .where('status', 'temporary')
       .where('expires_at', '<', now.toSQL()!)
       .whereDoesntHave('relations', () => {})

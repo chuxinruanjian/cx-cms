@@ -1,7 +1,7 @@
 import uploadConfig from '#config/upload'
 import UploadException from '#exceptions/upload_exception'
-import AdminAttachment from '#models/admin_attachment'
-import AdminAttachmentRelation from '#models/admin_attachment_relation'
+import Attachment from '#models/attachment'
+import AttachmentRelation from '#models/attachment_relation'
 import type AdminUser from '#models/admin_user'
 import AdminRbacService from '#services/admin_rbac_service'
 import FileInspectorService from '#services/upload/file_inspector_service'
@@ -36,7 +36,7 @@ export default class AttachmentService {
     }
   ) {
     const originalName = FileInspectorService.sanitizeOriginalName(input.originalName)
-    const attachment = await AdminAttachment.create({
+    const attachment = await Attachment.create({
       uuid: randomUUID(),
       parentAttachmentId: null,
       originalName,
@@ -78,7 +78,7 @@ export default class AttachmentService {
     }
   }
 
-  static async finalize(attachment: AdminAttachment, input: FinalizeInput) {
+  static async finalize(attachment: Attachment, input: FinalizeInput) {
     const fileStat = await stat(input.sourcePath)
     if (fileStat.size !== input.expectedSize) {
       throw new UploadException('Uploaded file size does not match', 'E_UPLOAD_SIZE_MISMATCH')
@@ -134,7 +134,7 @@ export default class AttachmentService {
   static async bind(user: AdminUser, input: BindInput) {
     const ids = [...new Set(input.attachmentIds)]
     const attachments = ids.length
-      ? await AdminAttachment.query().whereIn('id', ids).whereNot('status', 'deleted')
+      ? await Attachment.query().whereIn('id', ids).whereNot('status', 'deleted')
       : []
     const attachmentsById = new Map(attachments.map((attachment) => [attachment.id, attachment]))
 
@@ -159,7 +159,7 @@ export default class AttachmentService {
     }
 
     await db.transaction(async (trx) => {
-      const previousRelations = await AdminAttachmentRelation.query({ client: trx })
+      const previousRelations = await AttachmentRelation.query({ client: trx })
         .where('business_type', input.businessType)
         .where('business_id', input.businessId)
         .where('field_name', input.fieldName)
@@ -179,7 +179,7 @@ export default class AttachmentService {
         .map((relation) => relation.attachmentId)
 
       if (detachedIds.length) {
-        await AdminAttachmentRelation.query({ client: trx })
+        await AttachmentRelation.query({ client: trx })
           .where('business_type', input.businessType)
           .where('business_id', input.businessId)
           .where('field_name', input.fieldName)
@@ -187,12 +187,12 @@ export default class AttachmentService {
           .delete()
 
         for (const detachedId of detachedIds) {
-          const remaining = await AdminAttachmentRelation.query({ client: trx })
+          const remaining = await AttachmentRelation.query({ client: trx })
             .where('attachment_id', detachedId)
             .count('* as total')
             .first()
           if (Number(remaining?.$extras.total ?? 0) === 0) {
-            const detached = await AdminAttachment.find(detachedId, { client: trx })
+            const detached = await Attachment.find(detachedId, { client: trx })
             if (detached && detached.status !== 'deleted') {
               detached.useTransaction(trx)
               detached.status = 'temporary'
@@ -210,14 +210,14 @@ export default class AttachmentService {
       for (const [sort, attachmentId] of ids.entries()) {
         const attachment = attachmentsById.get(attachmentId)!
         attachment.useTransaction(trx)
-        let relation = await AdminAttachmentRelation.query({ client: trx })
+        let relation = await AttachmentRelation.query({ client: trx })
           .where('attachment_id', attachment.id)
           .where('business_type', input.businessType)
           .where('business_id', input.businessId)
           .where('field_name', input.fieldName)
           .first()
         if (!relation) {
-          relation = new AdminAttachmentRelation()
+          relation = new AttachmentRelation()
           relation.useTransaction(trx)
           relation.merge({
             attachmentId: attachment.id,
@@ -255,7 +255,7 @@ export default class AttachmentService {
     user: AdminUser,
     input: Omit<BindInput, 'attachmentIds'> & { attachmentIds: number[] }
   ) {
-    const relations = await AdminAttachmentRelation.query()
+    const relations = await AttachmentRelation.query()
       .where('business_type', input.businessType)
       .where('business_id', input.businessId)
       .where('field_name', input.fieldName)
@@ -284,7 +284,7 @@ export default class AttachmentService {
 
     await db.transaction(async (trx) => {
       for (const [sort, attachmentId] of input.attachmentIds.entries()) {
-        await AdminAttachmentRelation.query({ client: trx })
+        await AttachmentRelation.query({ client: trx })
           .where('attachment_id', attachmentId)
           .where('business_type', input.businessType)
           .where('business_id', input.businessId)
@@ -295,7 +295,7 @@ export default class AttachmentService {
     return { attachmentIds: input.attachmentIds }
   }
 
-  static async delete(user: AdminUser | null, attachment: AdminAttachment, system = false) {
+  static async delete(user: AdminUser | null, attachment: Attachment, system = false) {
     if (attachment.status === 'deleted') {
       return this.serialize(attachment, 0)
     }
@@ -303,7 +303,7 @@ export default class AttachmentService {
       throw new UploadException('Cannot delete this attachment', 'E_ATTACHMENT_FORBIDDEN', 403)
     }
 
-    const relationCount = await AdminAttachmentRelation.query()
+    const relationCount = await AttachmentRelation.query()
       .where('attachment_id', attachment.id)
       .count('* as total')
       .first()
@@ -318,7 +318,7 @@ export default class AttachmentService {
     attachment.status = 'pending_delete'
     await attachment.save()
 
-    const derivatives = await AdminAttachment.query().where('parent_attachment_id', attachment.id)
+    const derivatives = await Attachment.query().where('parent_attachment_id', attachment.id)
     for (const derivative of derivatives) {
       await this.delete(user, derivative, true)
     }
@@ -347,8 +347,8 @@ export default class AttachmentService {
   }
 
   static async findAndSerialize(id: number) {
-    const attachment = await AdminAttachment.findOrFail(id)
-    const relations = await AdminAttachmentRelation.query()
+    const attachment = await Attachment.findOrFail(id)
+    const relations = await AttachmentRelation.query()
       .where('attachment_id', id)
       .orderBy('sort', 'asc')
     return {
@@ -363,7 +363,7 @@ export default class AttachmentService {
     }
   }
 
-  static serialize(attachment: AdminAttachment, referenceCount = 0) {
+  static serialize(attachment: Attachment, referenceCount = 0) {
     const contentUrl =
       attachment.status === 'deleted' ? null : `/api/v1/admin/attachments/${attachment.id}/content`
     return {
@@ -399,7 +399,7 @@ export default class AttachmentService {
     }
   }
 
-  private static async canDelete(user: AdminUser, attachment: AdminAttachment) {
+  private static async canDelete(user: AdminUser, attachment: Attachment) {
     return (
       user.isSuperAdmin ||
       attachment.uploaderId === user.id ||

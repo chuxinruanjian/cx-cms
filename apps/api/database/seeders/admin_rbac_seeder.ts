@@ -34,17 +34,14 @@ export default class AdminRbacSeeder extends BaseSeeder {
       throw new Error('Set ADMIN_USERNAME, ADMIN_PASSWORD, and ADMIN_EMAIL before running db:seed')
     }
 
-    const permissionModels = await Promise.all(
-      permissions.map(([name, code]) =>
-        AdminPermission.updateOrCreate(
-          { code },
-          {
-            name,
-            description: null,
-            status: true,
-          }
-        )
-      )
+    const permissionModels = await AdminPermission.updateOrCreateMany(
+      'code',
+      permissions.map(([name, code]) => ({
+        code,
+        name,
+        description: null,
+        status: true,
+      }))
     )
 
     const role = await AdminRole.updateOrCreate(

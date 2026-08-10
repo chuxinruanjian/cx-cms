@@ -1,6 +1,6 @@
 import UploadException from '#exceptions/upload_exception'
-import AdminUploadChunk from '#models/admin_upload_chunk'
-import AdminUploadSession from '#models/admin_upload_session'
+import UploadChunk from '#models/upload_chunk'
+import UploadSession from '#models/upload_session'
 import AttachmentService from '#services/upload/attachment_service'
 import UploadSessionService from '#services/upload/upload_session_service'
 import {
@@ -19,13 +19,13 @@ export default class UploadsController {
       perPage = 20,
       status,
     } = await request.validateUsing(listUploadSessionsValidator)
-    const query = AdminUploadSession.query().orderBy('id', 'desc')
+    const query = UploadSession.query().orderBy('id', 'desc')
     if (status) query.where('status', status)
     const result = await query.paginate(page, perPage)
 
     const data = await Promise.all(
       result.all().map(async (session) => {
-        const chunks = await AdminUploadChunk.query()
+        const chunks = await UploadChunk.query()
           .where('upload_session_id', session.id)
           .orderBy('chunk_index', 'asc')
         return UploadSessionService.serialize(

@@ -1,8 +1,8 @@
 import uploadConfig from '#config/upload'
 import UploadException from '#exceptions/upload_exception'
-import AdminAttachment from '#models/admin_attachment'
-import AdminUploadChunk from '#models/admin_upload_chunk'
-import AdminUploadSession from '#models/admin_upload_session'
+import Attachment from '#models/attachment'
+import UploadChunk from '#models/upload_chunk'
+import UploadSession from '#models/upload_session'
 import type AdminUser from '#models/admin_user'
 import AttachmentService from '#services/upload/attachment_service'
 import FileInspectorService from '#services/upload/file_inspector_service'
@@ -38,7 +38,7 @@ export default class UploadSessionService {
     const uploadId = randomUUID()
     const expiresAt = DateTime.now().plus({ hours: uploadConfig.sessionTtlHours })
 
-    const attachment = await AdminAttachment.create({
+    const attachment = await Attachment.create({
       uuid: randomUUID(),
       parentAttachmentId: null,
       originalName,
@@ -65,7 +65,7 @@ export default class UploadSessionService {
       expiresAt,
       deletedAt: null,
     })
-    const session = await AdminUploadSession.create({
+    const session = await UploadSession.create({
       uploadId,
       uploadToken: input.uploadToken,
       attachmentId: attachment.id,
@@ -124,7 +124,7 @@ export default class UploadSessionService {
       throw new UploadException('Chunk hash does not match', 'E_UPLOAD_CHUNK_HASH')
     }
 
-    const existing = await AdminUploadChunk.query()
+    const existing = await UploadChunk.query()
       .where('upload_session_id', session.id)
       .where('chunk_index', input.chunkIndex)
       .first()
@@ -156,7 +156,7 @@ export default class UploadSessionService {
       }
     }
 
-    await AdminUploadChunk.create({
+    await UploadChunk.create({
       uploadSessionId: session.id,
       chunkIndex: input.chunkIndex,
       size: input.size,
@@ -167,7 +167,7 @@ export default class UploadSessionService {
       uploadedAt: DateTime.now(),
     })
     session.status = 'uploading'
-    session.uploadedChunks = await AdminUploadChunk.query()
+    session.uploadedChunks = await UploadChunk.query()
       .where('upload_session_id', session.id)
       .count('* as total')
       .then((rows) => Number(rows[0].$extras.total))
@@ -188,7 +188,7 @@ export default class UploadSessionService {
 
   static async status(user: AdminUser, uploadId: string) {
     const session = await this.ownedSession(user, uploadId)
-    const chunks = await AdminUploadChunk.query()
+    const chunks = await UploadChunk.query()
       .where('upload_session_id', session.id)
       .orderBy('chunk_index', 'asc')
     return this.serialize(
@@ -204,7 +204,7 @@ export default class UploadSessionService {
     }
     this.assertWritable(session)
 
-    const chunks = await AdminUploadChunk.query()
+    const chunks = await UploadChunk.query()
       .where('upload_session_id', session.id)
       .where('is_complete', true)
       .orderBy('chunk_index', 'asc')
@@ -228,7 +228,7 @@ export default class UploadSessionService {
       throw new UploadException('Assembled file size does not match', 'E_UPLOAD_SIZE_MISMATCH')
     }
 
-    const attachment = await AdminAttachment.findOrFail(session.attachmentId)
+    const attachment = await Attachment.findOrFail(session.attachmentId)
     try {
       await AttachmentService.finalize(attachment, {
         sourcePath: assembledPath,
@@ -254,12 +254,12 @@ export default class UploadSessionService {
 
   static async abort(user: AdminUser | null, uploadId: string, system = false) {
     const session = system
-      ? await AdminUploadSession.findByOrFail('uploadId', uploadId)
+      ? await UploadSession.findByOrFail('uploadId', uploadId)
       : await this.ownedSession(user!, uploadId)
     if (['aborted', 'expired'].includes(session.status)) {
       return this.serialize(session, [])
     }
-    const attachment = await AdminAttachment.find(session.attachmentId)
+    const attachment = await Attachment.find(session.attachmentId)
     if (session.storageUploadId) {
       await StorageManager.disk(
         (attachment?.storageDisk || uploadConfig.defaultDisk) as 'local' | 'oss' | 's3'
@@ -287,7 +287,7 @@ export default class UploadSessionService {
     return this.serialize(session, [])
   }
 
-  static serialize(session: AdminUploadSession, uploadedChunks: number[]) {
+  static serialize(session: UploadSession, uploadedChunks: number[]) {
     const progress =
       session.chunkTotal > 0 ? Math.round((uploadedChunks.length / session.chunkTotal) * 100) : 0
     return {
@@ -312,14 +312,14 @@ export default class UploadSessionService {
   }
 
   private static async ownedSession(user: AdminUser, uploadId: string) {
-    const session = await AdminUploadSession.findByOrFail('uploadId', uploadId)
+    const session = await UploadSession.findByOrFail('uploadId', uploadId)
     if (!user.isSuperAdmin && session.uploaderId !== user.id) {
       throw new UploadException('Upload session belongs to another user', 'E_UPLOAD_FORBIDDEN', 403)
     }
     return session
   }
 
-  private static assertWritable(session: AdminUploadSession) {
+  private static assertWritable(session: UploadSession) {
     if (session.expiresAt < DateTime.now()) {
       throw new UploadException('Upload session has expired', 'E_UPLOAD_SESSION_EXPIRED', 410)
     }

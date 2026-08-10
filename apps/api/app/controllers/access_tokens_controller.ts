@@ -1,5 +1,5 @@
 import AdminUser from '#models/admin_user'
-import AdminAttachment from '#models/admin_attachment'
+import Attachment from '#models/attachment'
 import UploadException from '#exceptions/upload_exception'
 import AdminAuthService from '#services/admin_auth_service'
 import AttachmentService from '#services/upload/attachment_service'
@@ -72,7 +72,7 @@ export default class AccessTokensController {
         })
         user.avatar = null
       } else {
-        const attachment = await AdminAttachment.findOrFail(avatarAttachmentId)
+        const attachment = await Attachment.findOrFail(avatarAttachmentId)
         if (attachment.fileType !== 'image') {
           throw new UploadException('Avatar attachment must be an image', 'E_AVATAR_NOT_IMAGE')
         }

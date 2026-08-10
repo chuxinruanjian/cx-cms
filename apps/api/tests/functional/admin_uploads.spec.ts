@@ -1,13 +1,14 @@
 import uploadConfig from '#config/upload'
-import AdminAttachment from '#models/admin_attachment'
-import AdminAttachmentRelation from '#models/admin_attachment_relation'
-import AdminUploadSession from '#models/admin_upload_session'
+import Attachment from '#models/attachment'
+import AttachmentRelation from '#models/attachment_relation'
+import UploadSession from '#models/upload_session'
 import AdminUser from '#models/admin_user'
 import AttachmentService from '#services/upload/attachment_service'
 import type { StorageAdapter, StoredObject } from '#services/upload/storage/storage_adapter'
 import StorageManager from '#services/upload/storage/storage_manager'
 import UploadCleanupService from '#services/upload/upload_cleanup_service'
 import testUtils from '@adonisjs/core/services/test_utils'
+import db from '@adonisjs/lucid/services/db'
 import type { ApiClient } from '@japa/api-client'
 import { test } from '@japa/runner'
 import { createHash, randomUUID } from 'node:crypto'
@@ -98,6 +99,26 @@ test.group('Unified admin uploads', (group) => {
     }
   })
 
+  test('uses shared attachment table names and MySQL-safe index names', async ({ assert }) => {
+    const tableNames = ['attachments', 'attachment_relations', 'upload_sessions', 'upload_chunks']
+
+    for (const tableName of tableNames) {
+      assert.isTrue(await db.connection().schema.hasTable(tableName))
+      assert.isFalse(await db.connection().schema.hasTable(`admin_${tableName}`))
+    }
+
+    const indexes = await db
+      .from('sqlite_master')
+      .select('name')
+      .where('type', 'index')
+      .whereIn('tbl_name', tableNames)
+
+    assert.isTrue(indexes.length > 0)
+    for (const index of indexes) {
+      assert.isAtMost(String(index.name).length, 64)
+    }
+  })
+
   test('uploads a small file as a temporary attachment and deletes it physically', async ({
     client,
   }) => {
@@ -114,7 +135,7 @@ test.group('Unified admin uploads', (group) => {
       progress: 100,
     })
 
-    const attachment = await AdminAttachment.findOrFail((response.body() as { id: number }).id)
+    const attachment = await Attachment.findOrFail((response.body() as { id: number }).id)
     const adapter = StorageManager.disk('local')
     await adapter.exists(attachment.objectKey!).then((exists) => {
       if (!exists) throw new Error('Expected stored file to exist')
@@ -247,7 +268,7 @@ test.group('Unified admin uploads', (group) => {
     sorted.assertStatus(200)
     sorted.assertBodyContains({ attachmentIds: [...ids].reverse() })
 
-    const relations = await AdminAttachmentRelation.query().orderBy('sort', 'asc')
+    const relations = await AttachmentRelation.query().orderBy('sort', 'asc')
     if (
       relations.map((relation) => relation.attachmentId).join(',') !== [...ids].reverse().join(',')
     ) {
@@ -271,7 +292,7 @@ test.group('Unified admin uploads', (group) => {
       })
     replaced.assertStatus(200)
 
-    const detached = await AdminAttachment.findOrFail(ids[0])
+    const detached = await Attachment.findOrFail(ids[0])
     if (detached.status !== 'temporary' || !detached.expiresAt) {
       throw new Error('A detached attachment must return to the temporary lifecycle')
     }
@@ -297,7 +318,7 @@ test.group('Unified admin uploads', (group) => {
     const user = await createUser('cleanup')
     const authorization = await bearer(user)
     const response = await uploadNormal(client, authorization)
-    const attachment = await AdminAttachment.findOrFail((response.body() as { id: number }).id)
+    const attachment = await Attachment.findOrFail((response.body() as { id: number }).id)
     attachment.expiresAt = DateTime.now().minus({ minutes: 1 })
     await attachment.save()
 
@@ -339,7 +360,7 @@ test.group('Unified admin uploads', (group) => {
         fileSize: 1024 * 1024,
         uploadToken: 'expired_draft_123',
       })
-    const session = await AdminUploadSession.findByOrFail('uploadId', second.body().uploadId)
+    const session = await UploadSession.findByOrFail('uploadId', second.body().uploadId)
     session.expiresAt = DateTime.now().minus({ minutes: 1 })
     await session.save()
 
@@ -406,7 +427,7 @@ test.group('Unified admin uploads', (group) => {
     const user = await createUser('idempotent')
     const authorization = await bearer(user)
     const uploaded = await uploadNormal(client, authorization)
-    const attachment = await AdminAttachment.findOrFail((uploaded.body() as { id: number }).id)
+    const attachment = await Attachment.findOrFail((uploaded.body() as { id: number }).id)
     await StorageManager.disk('local').delete(attachment.objectKey!)
 
     const first = await client
@@ -428,7 +449,7 @@ test.group('Unified admin uploads', (group) => {
     StorageManager.register('oss', adapter)
     adapter.objects.set('files/example.pdf', Buffer.from('example'))
 
-    const attachment = await AdminAttachment.create({
+    const attachment = await Attachment.create({
       uuid: randomUUID(),
       parentAttachmentId: null,
       originalName: 'example.pdf',
@@ -456,7 +477,7 @@ test.group('Unified admin uploads', (group) => {
       deletedAt: null,
     })
     adapter.objects.set('images/example-thumb.webp', Buffer.from('thumb'))
-    const derivative = await AdminAttachment.create({
+    const derivative = await Attachment.create({
       ...attachment.$attributes,
       id: undefined,
       uuid: randomUUID(),
@@ -481,7 +502,7 @@ test.group('Unified admin uploads', (group) => {
       throw new Error('Expected source and derived OSS objects to be deleted')
     }
 
-    const sessionAttachment = await AdminAttachment.create({
+    const sessionAttachment = await Attachment.create({
       ...attachment.$attributes,
       id: undefined,
       uuid: randomUUID(),
@@ -492,7 +513,7 @@ test.group('Unified admin uploads', (group) => {
       isComplete: false,
       deletedAt: null,
     })
-    const session = await AdminUploadSession.create({
+    const session = await UploadSession.create({
       uploadId: randomUUID(),
       uploadToken: 'oss_session_123',
       attachmentId: sessionAttachment.id,
