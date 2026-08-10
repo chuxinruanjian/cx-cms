@@ -5,6 +5,10 @@ export interface ApiDefinition {
   admin: {
     auth: {
       login: typeof routes['admin.auth.login']
+      sms: {
+        send: typeof routes['admin.auth.sms.send']
+        login: typeof routes['admin.auth.sms.login']
+      }
       me: typeof routes['admin.auth.me']
       update: typeof routes['admin.auth.update']
       logout: typeof routes['admin.auth.logout']

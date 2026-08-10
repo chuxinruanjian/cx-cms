@@ -19,6 +19,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/access_tokens_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'admin.auth.sms.send': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/auth/sms/send'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/admin_auth').adminSmsSendValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/admin_auth').adminSmsSendValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/access_tokens_controller').default['sendSms']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/access_tokens_controller').default['sendSms']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.auth.sms.login': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/auth/sms/login'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/admin_auth').adminSmsLoginValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/admin_auth').adminSmsLoginValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/access_tokens_controller').default['smsLogin']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/access_tokens_controller').default['smsLogin']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'admin.auth.me': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/admin/auth/me'

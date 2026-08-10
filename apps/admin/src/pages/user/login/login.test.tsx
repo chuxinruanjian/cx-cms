@@ -1,7 +1,7 @@
 ﻿// @ts-ignore
 import { startMock } from '@@/requestRecordMock';
 import { TestBrowser } from '@@/testBrowser';
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import React, { act } from 'react';
 
 let server: {
@@ -41,6 +41,15 @@ describe('Login Page', () => {
       rootContainer.baseElement?.querySelector('.ant-pro-form-login-desc')
         ?.textContent,
     ).toBe('Build business software faster');
+
+    const smsTab = await rootContainer.findByText('SMS Login');
+    fireEvent.click(smsTab);
+    expect(
+      await rootContainer.findByPlaceholderText('Mobile number'),
+    ).toBeTruthy();
+    expect(
+      await rootContainer.findByPlaceholderText('Verification code'),
+    ).toBeTruthy();
 
     rootContainer.unmount();
   });

@@ -61,6 +61,14 @@ export default await Env.create(new URL('../', import.meta.url), {
   ADMIN_PASSWORD: Env.schema.string.optional(),
   ADMIN_NAME: Env.schema.string.optional(),
   ADMIN_EMAIL: Env.schema.string.optional(),
+  ADMIN_MOBILE: Env.schema.string.optional(),
+
+  // Aliyun SMS
+  ALIYUN_ACCESS_KEY_ID: Env.schema.string.optional(),
+  ALIYUN_ACCESS_KEY_SECRET: Env.schema.string.optional(),
+  ALIYUN_SMS_SIGN_NAME: Env.schema.string.optional(),
+  ALIYUN_SMS_LOGIN_TEMPLATE_CODE: Env.schema.string.optional(),
+  ALIYUN_SMS_ENDPOINT: Env.schema.string.optional(),
 
   // Session
   SESSION_DRIVER: Env.schema.enum(['cookie', 'memory', 'database'] as const),

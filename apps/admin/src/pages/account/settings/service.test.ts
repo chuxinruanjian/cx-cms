@@ -15,6 +15,7 @@ const user = {
   id: 1,
   isSuperAdmin: true,
   lastLoginAt: null,
+  mobile: null,
   name: 'Admin User',
   permissions: ['*'],
   profile: null,

@@ -5,6 +5,8 @@ type ParamValue = string | number | bigint | boolean
 export type ScannedRoutes = {
   ALL: {
     'admin.auth.login': { paramsTuple?: []; params?: {} }
+    'admin.auth.sms.send': { paramsTuple?: []; params?: {} }
+    'admin.auth.sms.login': { paramsTuple?: []; params?: {} }
     'admin.auth.me': { paramsTuple?: []; params?: {} }
     'admin.auth.update': { paramsTuple?: []; params?: {} }
     'admin.auth.logout': { paramsTuple?: []; params?: {} }
@@ -62,6 +64,8 @@ export type ScannedRoutes = {
   }
   POST: {
     'admin.auth.login': { paramsTuple?: []; params?: {} }
+    'admin.auth.sms.send': { paramsTuple?: []; params?: {} }
+    'admin.auth.sms.login': { paramsTuple?: []; params?: {} }
     'admin.admin_roles.store': { paramsTuple?: []; params?: {} }
     'admin.admin_permissions.store': { paramsTuple?: []; params?: {} }
     'admin.uploads.store': { paramsTuple?: []; params?: {} }

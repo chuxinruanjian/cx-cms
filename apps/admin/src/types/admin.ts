@@ -4,6 +4,7 @@ export interface AdminAuthUser {
   name: string;
   fullName: string | null;
   email: string;
+  mobile: string | null;
   profile: string | null;
   avatar: string | null;
   status: boolean;
@@ -27,5 +28,19 @@ export interface AdminLoginResponse {
 export interface AdminLoginParams {
   username: string;
   password: string;
+  autoLogin?: boolean;
+}
+
+export interface AdminSmsLoginParams {
+  mobile: string;
+  code: string;
+  autoLogin?: boolean;
+}
+
+export interface AdminLoginFormValues {
+  username?: string;
+  password?: string;
+  mobile?: string;
+  code?: string;
   autoLogin?: boolean;
 }

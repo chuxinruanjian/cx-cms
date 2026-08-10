@@ -11,6 +11,7 @@ export default class AdminAuthService {
       name: user.fullName || user.username,
       fullName: user.fullName,
       email: user.email,
+      mobile: user.mobile,
       profile: user.profile,
       avatar: user.avatar,
       status: Boolean(user.status),

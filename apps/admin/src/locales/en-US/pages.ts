@@ -1,5 +1,29 @@
 export default {
   'pages.login.accountLogin.errorMessage': 'Incorrect username or password',
+  'pages.login.accountLogin.tab': 'Account Login',
+  'pages.login.smsLogin.tab': 'SMS Login',
+  'pages.login.smsLogin.errorMessage':
+    'Incorrect mobile number or verification code',
+  'pages.login.mobile.placeholder': 'Mobile number',
+  'pages.login.mobile.required': 'Please input your mobile number!',
+  'pages.login.mobile.invalid':
+    'Please input a valid mainland China mobile number!',
+  'pages.login.code.placeholder': 'Verification code',
+  'pages.login.code.required': 'Please input the verification code!',
+  'pages.login.code.invalid': 'The verification code must contain 6 digits!',
+  'pages.login.code.send': 'Get code',
+  'pages.login.code.resend': 'Resend in {seconds}s',
+  'pages.login.code.sent': 'Verification code sent!',
+  'pages.login.code.sendFailure':
+    'Failed to send the code. Please try again later!',
+  'pages.login.code.mobileNotBound':
+    'This mobile number is not bound to an administrator account!',
+  'pages.login.code.rateLimited':
+    'Too many requests. Please wait before requesting another code!',
+  'pages.login.code.schemaNotReady':
+    'The database schema is out of date. Run npm run db:migrate and restart the API.',
+  'pages.login.code.providerFailure':
+    'Failed to send SMS. Check the Aliyun SMS configuration or try again later!',
   'pages.login.failure': 'Login failed, please try again!',
   'pages.login.success': 'Login successful!',
   'pages.login.username.placeholder': 'Username',
