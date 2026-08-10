@@ -87,6 +87,10 @@ changes, run typecheck, tests, and builds for every affected workspace.
   and out of application logs. Provider credentials, sign names, and template
   codes come from environment variables; controllers must not call an SMS SDK
   directly.
+- Account password changes and security-mobile binding live under authenticated
+  `/api/v1/admin/auth/security/*` routes. Both operations verify the current
+  password; mobile binding and replacement share the `admin_mobile` SMS scene,
+  require a code sent to the new number, and enforce mobile uniqueness.
 - An access token proves identity only. Roles and permissions must be resolved
   from the database at request time through `AdminRbacService`, so revocation is
   effective immediately. `is_super_admin` is the explicit authorization bypass.

@@ -42,6 +42,24 @@ const routes = {
     tokens: [{"old":"/api/v1/admin/auth/logout","type":0,"val":"api","end":""},{"old":"/api/v1/admin/auth/logout","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/auth/logout","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/auth/logout","type":0,"val":"auth","end":""},{"old":"/api/v1/admin/auth/logout","type":0,"val":"logout","end":""}],
     types: placeholder as Registry['admin.auth.logout']['types'],
   },
+  'admin.auth.security.password': {
+    methods: ["PATCH"],
+    pattern: '/api/v1/admin/auth/security/password',
+    tokens: [{"old":"/api/v1/admin/auth/security/password","type":0,"val":"api","end":""},{"old":"/api/v1/admin/auth/security/password","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/auth/security/password","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/auth/security/password","type":0,"val":"auth","end":""},{"old":"/api/v1/admin/auth/security/password","type":0,"val":"security","end":""},{"old":"/api/v1/admin/auth/security/password","type":0,"val":"password","end":""}],
+    types: placeholder as Registry['admin.auth.security.password']['types'],
+  },
+  'admin.auth.security.mobile.code': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/auth/security/mobile/code',
+    tokens: [{"old":"/api/v1/admin/auth/security/mobile/code","type":0,"val":"api","end":""},{"old":"/api/v1/admin/auth/security/mobile/code","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/auth/security/mobile/code","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/auth/security/mobile/code","type":0,"val":"auth","end":""},{"old":"/api/v1/admin/auth/security/mobile/code","type":0,"val":"security","end":""},{"old":"/api/v1/admin/auth/security/mobile/code","type":0,"val":"mobile","end":""},{"old":"/api/v1/admin/auth/security/mobile/code","type":0,"val":"code","end":""}],
+    types: placeholder as Registry['admin.auth.security.mobile.code']['types'],
+  },
+  'admin.auth.security.mobile': {
+    methods: ["PUT"],
+    pattern: '/api/v1/admin/auth/security/mobile',
+    tokens: [{"old":"/api/v1/admin/auth/security/mobile","type":0,"val":"api","end":""},{"old":"/api/v1/admin/auth/security/mobile","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/auth/security/mobile","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/auth/security/mobile","type":0,"val":"auth","end":""},{"old":"/api/v1/admin/auth/security/mobile","type":0,"val":"security","end":""},{"old":"/api/v1/admin/auth/security/mobile","type":0,"val":"mobile","end":""}],
+    types: placeholder as Registry['admin.auth.security.mobile']['types'],
+  },
   'admin.admin_users.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/admin/users',

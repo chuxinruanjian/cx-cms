@@ -25,6 +25,29 @@ export const adminSmsLoginValidator = vine.create({
   remember: vine.boolean().optional(),
 })
 
+export const changeAdminPasswordValidator = vine.create({
+  currentPassword: vine.string().minLength(1).maxLength(128),
+  newPassword: vine
+    .string()
+    .minLength(8)
+    .maxLength(128)
+    .regex(/[A-Za-z]/)
+    .regex(/\d/),
+})
+
+export const sendAdminMobileCodeValidator = vine.create({
+  mobile: adminMobile(),
+})
+
+export const updateAdminMobileValidator = vine.create({
+  currentPassword: vine.string().minLength(1).maxLength(128),
+  mobile: adminMobile(),
+  code: vine
+    .string()
+    .trim()
+    .regex(/^\d{6}$/),
+})
+
 export const updateAdminProfileValidator = vine.create({
   fullName: vine.string().trim().minLength(1).maxLength(64),
   email: vine.string().trim().email().maxLength(254),

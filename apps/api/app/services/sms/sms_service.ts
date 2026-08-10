@@ -9,8 +9,17 @@ import db from '@adonisjs/lucid/services/db'
 import { randomInt } from 'node:crypto'
 import { DateTime } from 'luxon'
 
-export type SmsScene = 'admin_login'
-export type SmsSender = (mobile: string, code: string) => Promise<SmsSendResult>
+export type SmsScene = 'admin_login' | 'admin_mobile'
+export type SmsSender = (
+  mobile: string,
+  code: string,
+  templateCode: string | undefined
+) => Promise<SmsSendResult>
+
+const TEMPLATE_ENV_KEYS = {
+  admin_login: 'ALIYUN_SMS_LOGIN_TEMPLATE_CODE',
+  admin_mobile: 'ALIYUN_SMS_SECURITY_MOBILE_TEMPLATE_CODE',
+} as const
 
 const CODE_TTL_MINUTES = 5
 const RESEND_INTERVAL_SECONDS = 60
@@ -26,22 +35,25 @@ export class SmsRateLimitError extends Error {
 }
 
 export default class SmsService {
-  private static sender: SmsSender = (mobile, code) =>
-    AliyunSmsProvider.sendVerificationCode(mobile, code)
+  private static sender: SmsSender = (mobile, code, templateCode) =>
+    AliyunSmsProvider.sendVerificationCode(mobile, code, templateCode)
 
   static setSender(sender?: SmsSender) {
-    this.sender = sender || ((mobile, code) => AliyunSmsProvider.sendVerificationCode(mobile, code))
+    this.sender =
+      sender ||
+      ((mobile, code, templateCode) =>
+        AliyunSmsProvider.sendVerificationCode(mobile, code, templateCode))
   }
 
   static async sendCode(mobile: string, scene: SmsScene, requestIp: string) {
     await this.assertSendAllowed(mobile, scene, requestIp)
 
     const code = String(randomInt(100000, 1000000))
-    const templateCode = env.get('ALIYUN_SMS_LOGIN_TEMPLATE_CODE', 'unconfigured')
+    const templateCode = env.get(TEMPLATE_ENV_KEYS[scene])
     const smsCode = await SmsCode.create({
       mobile,
       scene,
-      templateCode,
+      templateCode: templateCode || 'unconfigured',
       codeHash: await hash.make(code),
       expiresAt: DateTime.now().plus({ minutes: CODE_TTL_MINUTES }),
       usedAt: null,
@@ -52,7 +64,7 @@ export default class SmsService {
     })
 
     try {
-      const result = await this.sender(mobile, code)
+      const result = await this.sender(mobile, code, templateCode)
       smsCode.sendStatus = 'sent'
       smsCode.providerResponse = JSON.stringify(result)
       await smsCode.save()

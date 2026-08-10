@@ -12,6 +12,12 @@ export interface ApiDefinition {
       me: typeof routes['admin.auth.me']
       update: typeof routes['admin.auth.update']
       logout: typeof routes['admin.auth.logout']
+      security: {
+        password: typeof routes['admin.auth.security.password']
+        mobile: typeof routes['admin.auth.security.mobile'] & {
+          code: typeof routes['admin.auth.security.mobile.code']
+        }
+      }
     }
     adminUsers: {
       index: typeof routes['admin.admin_users.index']

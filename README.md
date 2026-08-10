@@ -333,6 +333,9 @@ AI 开发前请先阅读根目录 `AGENTS.md`；修改管理后台时还需要�
 - `POST /api/v1/admin/auth/sms/login`
 - `GET /api/v1/admin/auth/me`
 - `PATCH /api/v1/admin/auth/me`
+- `PATCH /api/v1/admin/auth/security/password`
+- `POST /api/v1/admin/auth/security/mobile/code`
+- `PUT /api/v1/admin/auth/security/mobile`
 - `DELETE /api/v1/admin/auth/logout`
 
 密码登录使用 `username`、`password` 和可选的 `remember`；短信登录使用
@@ -351,8 +354,13 @@ ALIYUN_ACCESS_KEY_ID=请填写 AccessKey ID
 ALIYUN_ACCESS_KEY_SECRET=请填写 AccessKey Secret
 ALIYUN_SMS_SIGN_NAME=请填写短信签名
 ALIYUN_SMS_LOGIN_TEMPLATE_CODE=SMS_000000000
+ALIYUN_SMS_SECURITY_MOBILE_TEMPLATE_CODE=SMS_000000001
 ALIYUN_SMS_ENDPOINT=dysmsapi.aliyuncs.com
 ```
+
+`ALIYUN_SMS_LOGIN_TEMPLATE_CODE` 仅用于后台短信登录；
+`ALIYUN_SMS_SECURITY_MOBILE_TEMPLATE_CODE` 专门用于密保手机绑定和换绑。两个场景
+必须分别配置对应的阿里云模板，模板变量都使用 `code`。
 
 密钥只写入 `.env`，不要提交 Git。发送接口会校验管理员手机号和状态；手机号
 未绑定有效管理员账号时返回 `E_ADMIN_MOBILE_NOT_BOUND`，且不会调用短信服务。
@@ -363,6 +371,12 @@ ALIYUN_SMS_ENDPOINT=dysmsapi.aliyuncs.com
 当前管理员可通过 `PATCH /api/v1/admin/auth/me` 更新昵称、邮箱和个人简介。
 头像先通过统一上传组件上传，再将 `avatarAttachmentId` 随基本资料提交；接口
 会把图片绑定到当前管理员。没有配置头像时，后台统一显示由昵称生成的文字头像。
+
+安全设置中的密码修改必须校验当前密码，新密码至少 8 位且同时包含字母和数字；
+修改成功后保留当前会话，并撤销该管理员的其他访问令牌。密保手机未设置时显示
+绑定，已设置时显示修改，两者共用“当前密码、新手机号、短信验证码”流程。
+验证码发送前会检查手机号是否已被其他管理员绑定，绑定或换绑成功后短信登录
+立即使用新手机号。
 
 RBAC 管理接口位于 `/api/v1/admin/users`、`/api/v1/admin/roles` 和
 `/api/v1/admin/permissions`。接口先经过 Bearer Token 认证，再通过
