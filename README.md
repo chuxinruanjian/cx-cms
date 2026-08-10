@@ -100,10 +100,12 @@ ADMIN_USERNAME=admin
 ADMIN_PASSWORD=请替换为强密码
 ADMIN_NAME=超级管理员
 ADMIN_EMAIL=admin@example.com
+ADMIN_MOBILE=13800138000
 ```
 
 初始化命令会创建后台 RBAC 权限、`super_admin` 角色和首个超级管理员，
-可重复执行且不会重复插入数据。后台不提供公开注册接口。
+可重复执行且不会重复插入数据。`ADMIN_MOBILE` 为可选项；需要使用短信登录时，
+请设置管理员手机号。后台不提供公开注册接口。
 
 ### 5. 启动项目
 
@@ -311,28 +313,52 @@ AI 开发前请先阅读根目录 `AGENTS.md`；修改管理后台时还需要�
 
 ## 后台认证与 RBAC
 
-所有后台数据表统一使用 `admin_` 前缀：
+所有后台业务数据表统一使用 `admin_` 前缀。短信验证码属于跨端基础设施，
+使用无后台前缀的 `sms_codes` 表：
 
 | 表名 | 用途 |
 | --- | --- |
-| `admin_users` | 后台用户、基本资料、头像、状态、超级管理员标记和最后登录信息 |
+| `admin_users` | 后台用户、手机号、基本资料、头像、状态、超级管理员标记和最后登录信息 |
 | `admin_access_tokens` | 后台 Bearer Token，仅用于身份认证 |
 | `admin_roles` | 角色 |
 | `admin_permissions` | 原子权限 |
 | `admin_user_roles` | 用户与角色关系 |
 | `admin_role_permissions` | 角色与权限关系 |
+| `sms_codes` | 短信验证码哈希、场景、有效期、发送状态和校验次数 |
 
 后台认证接口：
 
 - `POST /api/v1/admin/auth/login`
+- `POST /api/v1/admin/auth/sms/send`
+- `POST /api/v1/admin/auth/sms/login`
 - `GET /api/v1/admin/auth/me`
 - `PATCH /api/v1/admin/auth/me`
 - `DELETE /api/v1/admin/auth/logout`
 
-登录请求使用 `username`、`password` 和可选的 `remember`。普通登录令牌有效期
-为 12 小时，记住登录为 30 天。禁用用户不能登录。角色和权限不会固化到
+密码登录使用 `username`、`password` 和可选的 `remember`；短信登录使用
+`mobile`、`code` 和可选的 `remember`。普通登录令牌有效期为 12 小时，
+记住登录为 30 天。禁用用户不能登录。角色和权限不会固化到
 Token 中，每个受保护请求都从数据库实时读取，因此修改角色、禁用角色或
 禁用权限后会立即生效。
+
+### 阿里云短信登录
+
+在阿里云短信服务中准备短信签名和验证码模板，模板变量必须为 `code`。然后在
+`apps/api/.env` 中配置：
+
+```dotenv
+ALIYUN_ACCESS_KEY_ID=请填写 AccessKey ID
+ALIYUN_ACCESS_KEY_SECRET=请填写 AccessKey Secret
+ALIYUN_SMS_SIGN_NAME=请填写短信签名
+ALIYUN_SMS_LOGIN_TEMPLATE_CODE=SMS_000000000
+ALIYUN_SMS_ENDPOINT=dysmsapi.aliyuncs.com
+```
+
+密钥只写入 `.env`，不要提交 Git。发送接口会校验管理员手机号和状态；手机号
+未绑定有效管理员账号时返回 `E_ADMIN_MOBILE_NOT_BOUND`，且不会调用短信服务。
+验证码有效期为 5 分钟，同一手机号 60 秒内不可重复发送，同一 IP 10 分钟最多
+发送 10 次；验证码只保存 Argon 哈希，连续校验失败 5 次后失效，成功登录后
+立即作废且不可重复使用。
 
 当前管理员可通过 `PATCH /api/v1/admin/auth/me` 更新昵称、邮箱和个人简介。
 头像先通过统一上传组件上传，再将 `avatarAttachmentId` 随基本资料提交；接口

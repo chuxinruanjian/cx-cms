@@ -37,6 +37,8 @@ router.get('/h5/*', serveSpa('h5/index.html', 'H5 application is not built'))
 router
   .group(() => {
     router.post('auth/login', [AccessTokensController, 'store']).as('auth.login')
+    router.post('auth/sms/send', [AccessTokensController, 'sendSms']).as('auth.sms.send')
+    router.post('auth/sms/login', [AccessTokensController, 'smsLogin']).as('auth.sms.login')
 
     router
       .group(() => {

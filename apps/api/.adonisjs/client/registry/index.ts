@@ -12,6 +12,18 @@ const routes = {
     tokens: [{"old":"/api/v1/admin/auth/login","type":0,"val":"api","end":""},{"old":"/api/v1/admin/auth/login","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/auth/login","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/auth/login","type":0,"val":"auth","end":""},{"old":"/api/v1/admin/auth/login","type":0,"val":"login","end":""}],
     types: placeholder as Registry['admin.auth.login']['types'],
   },
+  'admin.auth.sms.send': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/auth/sms/send',
+    tokens: [{"old":"/api/v1/admin/auth/sms/send","type":0,"val":"api","end":""},{"old":"/api/v1/admin/auth/sms/send","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/auth/sms/send","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/auth/sms/send","type":0,"val":"auth","end":""},{"old":"/api/v1/admin/auth/sms/send","type":0,"val":"sms","end":""},{"old":"/api/v1/admin/auth/sms/send","type":0,"val":"send","end":""}],
+    types: placeholder as Registry['admin.auth.sms.send']['types'],
+  },
+  'admin.auth.sms.login': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/auth/sms/login',
+    tokens: [{"old":"/api/v1/admin/auth/sms/login","type":0,"val":"api","end":""},{"old":"/api/v1/admin/auth/sms/login","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/auth/sms/login","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/auth/sms/login","type":0,"val":"auth","end":""},{"old":"/api/v1/admin/auth/sms/login","type":0,"val":"sms","end":""},{"old":"/api/v1/admin/auth/sms/login","type":0,"val":"login","end":""}],
+    types: placeholder as Registry['admin.auth.sms.login']['types'],
+  },
   'admin.auth.me': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/admin/auth/me',

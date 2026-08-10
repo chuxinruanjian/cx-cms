@@ -79,6 +79,7 @@ const currentUser = {
   id: 1,
   isSuperAdmin: true,
   lastLoginAt: null,
+  mobile: null,
   name: 'Ant Design',
   permissions: ['*'],
   profile: 'Reusable project administrator',

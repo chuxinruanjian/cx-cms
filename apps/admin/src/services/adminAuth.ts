@@ -3,6 +3,7 @@ import type {
   AdminAuthUser,
   AdminLoginParams,
   AdminLoginResponse,
+  AdminSmsLoginParams,
 } from '@/types/admin';
 import {
   clearAdminToken,
@@ -11,6 +12,14 @@ import {
 } from '@/utils/adminAuth';
 
 const avatarObjectUrls = new Map<string, string>();
+
+const persistLogin = (
+  result: AdminLoginResponse,
+  remember: boolean,
+) => {
+  saveAdminToken(result.token.value, remember);
+  return result;
+};
 
 const resolvePrivateAvatar = async (user: AdminAuthUser) => {
   const source = user.avatar;
@@ -46,8 +55,35 @@ export const loginAdmin = async (params: AdminLoginParams) => {
     },
   );
 
-  saveAdminToken(result.token.value, params.autoLogin ?? false);
-  return result;
+  return persistLogin(result, params.autoLogin ?? false);
+};
+
+export const sendAdminSmsCode = async (mobile: string) => {
+  return request<{ message: string; expiresInSeconds?: number }>(
+    '/api/v1/admin/auth/sms/send',
+    {
+      method: 'POST',
+      data: { mobile },
+      skipErrorHandler: true,
+    },
+  );
+};
+
+export const loginAdminWithSms = async (params: AdminSmsLoginParams) => {
+  const result = await request<AdminLoginResponse>(
+    '/api/v1/admin/auth/sms/login',
+    {
+      method: 'POST',
+      data: {
+        mobile: params.mobile,
+        code: params.code,
+        remember: params.autoLogin ?? false,
+      },
+      skipErrorHandler: true,
+    },
+  );
+
+  return persistLogin(result, params.autoLogin ?? false);
 };
 
 export const getCurrentAdmin = async (options?: {

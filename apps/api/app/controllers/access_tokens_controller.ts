@@ -2,8 +2,14 @@ import AdminUser from '#models/admin_user'
 import Attachment from '#models/attachment'
 import UploadException from '#exceptions/upload_exception'
 import AdminAuthService from '#services/admin_auth_service'
+import SmsService, { SmsRateLimitError } from '#services/sms/sms_service'
 import AttachmentService from '#services/upload/attachment_service'
-import { adminLoginValidator, updateAdminProfileValidator } from '#validators/admin_auth'
+import {
+  adminLoginValidator,
+  adminSmsLoginValidator,
+  adminSmsSendValidator,
+  updateAdminProfileValidator,
+} from '#validators/admin_auth'
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 
@@ -23,8 +29,63 @@ export default class AccessTokensController {
       })
     }
 
+    return this.issueToken(user, request.ip(), remember)
+  }
+
+  async sendSms({ request, response, logger }: HttpContext) {
+    const { mobile } = await request.validateUsing(adminSmsSendValidator)
+    const user = await AdminUser.query().where('mobile', mobile).where('status', true).first()
+
+    if (!user) {
+      return response.unprocessableEntity({
+        code: 'E_ADMIN_MOBILE_NOT_BOUND',
+        message: 'This mobile number is not bound to an administrator account',
+      })
+    }
+
+    try {
+      const result = await SmsService.sendCode(mobile, 'admin_login', request.ip())
+      return {
+        message: 'Verification code sent',
+        expiresInSeconds: result.expiresInSeconds,
+      }
+    } catch (error) {
+      if (error instanceof SmsRateLimitError) {
+        response.header('Retry-After', String(error.retryAfterSeconds))
+        return response.tooManyRequests({
+          code: 'E_SMS_RATE_LIMITED',
+          message: 'Please wait before requesting another verification code',
+          retryAfterSeconds: error.retryAfterSeconds,
+        })
+      }
+
+      logger.error(
+        { errorName: error instanceof Error ? error.name : 'UnknownError' },
+        'Failed to send admin login SMS'
+      )
+      return response.badGateway({
+        code: 'E_SMS_SEND_FAILED',
+        message: 'Failed to send verification code',
+      })
+    }
+  }
+
+  async smsLogin({ request, response }: HttpContext) {
+    const { mobile, code, remember = false } = await request.validateUsing(adminSmsLoginValidator)
+    const user = await AdminUser.query().where('mobile', mobile).where('status', true).first()
+    if (!user || !(await SmsService.verifyCode(mobile, 'admin_login', code))) {
+      return response.unauthorized({
+        code: 'E_INVALID_SMS_CODE',
+        message: 'The verification code is invalid or has expired',
+      })
+    }
+
+    return this.issueToken(user, request.ip(), remember)
+  }
+
+  private async issueToken(user: AdminUser, requestIp: string, remember: boolean) {
     user.lastLoginAt = DateTime.now()
-    user.lastLoginIp = request.ip()
+    user.lastLoginIp = requestIp
     await user.save()
 
     const token = await AdminUser.accessTokens.create(user, ['*'], {

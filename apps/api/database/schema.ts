@@ -137,6 +137,7 @@ export class AdminUserSchema extends BaseModel {
     'isSuperAdmin',
     'lastLoginAt',
     'lastLoginIp',
+    'mobile',
     'password',
     'profile',
     'status',
@@ -160,6 +161,8 @@ export class AdminUserSchema extends BaseModel {
   declare lastLoginAt: DateTime | null
   @column()
   declare lastLoginIp: string | null
+  @column()
+  declare mobile: string | null
   @column({ serializeAs: null })
   declare password: string
   @column()
@@ -287,6 +290,51 @@ export class AttachmentSchema extends BaseModel {
   declare uuid: string
   @column()
   declare width: number | null
+}
+
+export class SmsCodeSchema extends BaseModel {
+  static $columns = [
+    'attemptCount',
+    'codeHash',
+    'createdAt',
+    'expiresAt',
+    'id',
+    'mobile',
+    'providerResponse',
+    'requestIp',
+    'scene',
+    'sendStatus',
+    'templateCode',
+    'updatedAt',
+    'usedAt',
+  ] as const
+  $columns = SmsCodeSchema.$columns
+  @column()
+  declare attemptCount: number
+  @column()
+  declare codeHash: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare mobile: string
+  @column()
+  declare providerResponse: string | null
+  @column()
+  declare requestIp: string | null
+  @column()
+  declare scene: string
+  @column()
+  declare sendStatus: string
+  @column()
+  declare templateCode: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column.dateTime()
+  declare usedAt: DateTime | null
 }
 
 export class UploadChunkSchema extends BaseModel {

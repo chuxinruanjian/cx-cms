@@ -29,6 +29,7 @@ export default class AdminRbacSeeder extends BaseSeeder {
     const username = env.get('ADMIN_USERNAME')
     const password = env.get('ADMIN_PASSWORD')
     const email = env.get('ADMIN_EMAIL')
+    const mobile = env.get('ADMIN_MOBILE')
 
     if (!username || !password || !email) {
       throw new Error('Set ADMIN_USERNAME, ADMIN_PASSWORD, and ADMIN_EMAIL before running db:seed')
@@ -59,6 +60,7 @@ export default class AdminRbacSeeder extends BaseSeeder {
       {
         fullName: env.get('ADMIN_NAME', '超级管理员'),
         email,
+        ...(mobile ? { mobile } : {}),
         password,
         status: true,
         isSuperAdmin: true,

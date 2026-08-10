@@ -6,6 +6,25 @@ export const adminLoginValidator = vine.create({
   remember: vine.boolean().optional(),
 })
 
+const adminMobile = () =>
+  vine
+    .string()
+    .trim()
+    .regex(/^1[3-9]\d{9}$/)
+
+export const adminSmsSendValidator = vine.create({
+  mobile: adminMobile(),
+})
+
+export const adminSmsLoginValidator = vine.create({
+  mobile: adminMobile(),
+  code: vine
+    .string()
+    .trim()
+    .regex(/^\d{6}$/),
+  remember: vine.boolean().optional(),
+})
+
 export const updateAdminProfileValidator = vine.create({
   fullName: vine.string().trim().minLength(1).maxLength(64),
   email: vine.string().trim().email().maxLength(254),

@@ -2,11 +2,22 @@ import AdminPermission from '#models/admin_permission'
 import AdminRole from '#models/admin_role'
 import AttachmentRelation from '#models/attachment_relation'
 import AdminUser from '#models/admin_user'
+import SmsService from '#services/sms/sms_service'
 import testUtils from '@adonisjs/core/services/test_utils'
 import { test } from '@japa/runner'
 
 test.group('Admin authentication and RBAC', (group) => {
+  let deliveredCodes = new Map<string, string>()
+
   group.each.setup(() => testUtils.db().truncate())
+  group.each.setup(() => {
+    deliveredCodes = new Map()
+    SmsService.setSender(async (mobile, code) => {
+      deliveredCodes.set(mobile, code)
+      return { providerCode: 'OK', requestId: 'test-request' }
+    })
+    return () => SmsService.setSender()
+  })
 
   test('logs in, returns the current administrator, and revokes the token', async ({ client }) => {
     const user = await AdminUser.create({
@@ -81,6 +92,64 @@ test.group('Admin authentication and RBAC', (group) => {
 
     response.assertStatus(403)
     response.assertBodyContains({ code: 'E_ADMIN_DISABLED' })
+  })
+
+  test('sends a rate-limited code and logs in once with SMS', async ({ client }) => {
+    const mobile = '13800138000'
+    const user = await AdminUser.create({
+      username: 'sms-admin',
+      fullName: 'SMS Admin',
+      email: 'sms-admin@example.com',
+      mobile,
+      password: 'StrongPassword123!',
+      status: true,
+      isSuperAdmin: true,
+    })
+
+    const sent = await client.post('/api/v1/admin/auth/sms/send').json({ mobile })
+    sent.assertStatus(200)
+    sent.assertBodyContains({ message: 'Verification code sent', expiresInSeconds: 300 })
+
+    const rateLimited = await client.post('/api/v1/admin/auth/sms/send').json({ mobile })
+    rateLimited.assertStatus(429)
+    rateLimited.assertBodyContains({ code: 'E_SMS_RATE_LIMITED' })
+
+    const invalid = await client.post('/api/v1/admin/auth/sms/login').json({
+      mobile,
+      code: '000000',
+    })
+    invalid.assertStatus(401)
+    invalid.assertBodyContains({ code: 'E_INVALID_SMS_CODE' })
+
+    const code = deliveredCodes.get(mobile)
+    if (!code) throw new Error('Expected the fake SMS sender to capture a code')
+    const login = await client.post('/api/v1/admin/auth/sms/login').json({
+      mobile,
+      code,
+      remember: true,
+    })
+    login.assertStatus(200)
+    login.assertBodyContains({
+      user: { id: user.id, mobile },
+      token: { type: 'Bearer' },
+    })
+
+    const reused = await client.post('/api/v1/admin/auth/sms/login').json({ mobile, code })
+    reused.assertStatus(401)
+    reused.assertBodyContains({ code: 'E_INVALID_SMS_CODE' })
+  })
+
+  test('rejects an unbound administrator mobile without sending SMS', async ({ client }) => {
+    const response = await client.post('/api/v1/admin/auth/sms/send').json({
+      mobile: '13900139000',
+    })
+
+    response.assertStatus(422)
+    response.assertBodyContains({
+      code: 'E_ADMIN_MOBILE_NOT_BOUND',
+      message: 'This mobile number is not bound to an administrator account',
+    })
+    if (deliveredCodes.size !== 0) throw new Error('Expected no SMS for an unknown mobile')
   })
 
   test('updates the current profile and binds an uploaded avatar', async ({ client }) => {
