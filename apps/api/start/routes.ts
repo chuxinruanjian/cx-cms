@@ -40,6 +40,12 @@ router
     router.post('auth/login', [AccessTokensController, 'store']).as('auth.login')
     router.post('auth/sms/send', [AccessTokensController, 'sendSms']).as('auth.sms.send')
     router.post('auth/sms/login', [AccessTokensController, 'smsLogin']).as('auth.sms.login')
+    router
+      .post('auth/password-reset/code', [AdminSecurityController, 'sendPasswordResetCode'])
+      .as('auth.passwordReset.code')
+    router
+      .post('auth/password-reset', [AdminSecurityController, 'resetPassword'])
+      .as('auth.passwordReset')
 
     router
       .group(() => {

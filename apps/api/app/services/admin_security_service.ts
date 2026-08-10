@@ -36,6 +36,13 @@ export class InvalidMobileCodeError extends Error {
   }
 }
 
+export class AdminMobileNotBoundError extends Error {
+  constructor() {
+    super('This mobile number is not bound to an active administrator account')
+    this.name = 'AdminMobileNotBoundError'
+  }
+}
+
 export default class AdminSecurityService {
   static async changePassword(user: AdminUser, currentPassword: string, newPassword: string) {
     if (!(await user.verifyPassword(currentPassword))) throw new CurrentPasswordInvalidError()
@@ -79,10 +86,33 @@ export default class AdminSecurityService {
     }
   }
 
+  static async sendPasswordResetCode(mobile: string, requestIp: string) {
+    await this.findActiveUserByMobile(mobile)
+    return SmsService.sendCode(mobile, 'admin_password_reset', requestIp)
+  }
+
+  static async resetPassword(mobile: string, code: string, newPassword: string) {
+    const user = await this.findActiveUserByMobile(mobile)
+    if (!(await SmsService.verifyCode(mobile, 'admin_password_reset', code))) {
+      throw new InvalidMobileCodeError()
+    }
+    if (await user.verifyPassword(newPassword)) throw new PasswordUnchangedError()
+
+    user.password = newPassword
+    await user.save()
+    await AdminUser.accessTokens.deleteAll(user)
+  }
+
   private static async assertMobileAvailable(user: AdminUser, mobile: string) {
     if (user.mobile === mobile) throw new AdminMobileUnchangedError()
     const owner = await AdminUser.query().where('mobile', mobile).whereNot('id', user.id).first()
     if (owner) throw new AdminMobileAlreadyBoundError()
+  }
+
+  private static async findActiveUserByMobile(mobile: string) {
+    const user = await AdminUser.query().where('mobile', mobile).where('status', true).first()
+    if (!user) throw new AdminMobileNotBoundError()
+    return user
   }
 
   private static isUniqueConstraintError(error: unknown) {

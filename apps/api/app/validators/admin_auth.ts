@@ -48,6 +48,24 @@ export const updateAdminMobileValidator = vine.create({
     .regex(/^\d{6}$/),
 })
 
+export const resetAdminPasswordCodeValidator = vine.create({
+  mobile: adminMobile(),
+})
+
+export const resetAdminPasswordValidator = vine.create({
+  mobile: adminMobile(),
+  code: vine
+    .string()
+    .trim()
+    .regex(/^\d{6}$/),
+  newPassword: vine
+    .string()
+    .minLength(8)
+    .maxLength(128)
+    .regex(/[A-Za-z]/)
+    .regex(/\d/),
+})
+
 export const updateAdminProfileValidator = vine.create({
   fullName: vine.string().trim().minLength(1).maxLength(64),
   email: vine.string().trim().email().maxLength(254),

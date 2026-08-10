@@ -9,7 +9,7 @@ import db from '@adonisjs/lucid/services/db'
 import { randomInt } from 'node:crypto'
 import { DateTime } from 'luxon'
 
-export type SmsScene = 'admin_login' | 'admin_mobile'
+export type SmsScene = 'admin_login' | 'admin_mobile' | 'admin_password_reset'
 export type SmsSender = (
   mobile: string,
   code: string,
@@ -19,6 +19,7 @@ export type SmsSender = (
 const TEMPLATE_ENV_KEYS = {
   admin_login: 'ALIYUN_SMS_LOGIN_TEMPLATE_CODE',
   admin_mobile: 'ALIYUN_SMS_SECURITY_MOBILE_TEMPLATE_CODE',
+  admin_password_reset: 'ALIYUN_SMS_PASSWORD_RESET_TEMPLATE_CODE',
 } as const
 
 const CODE_TTL_MINUTES = 5

@@ -3,6 +3,7 @@ import type {
   AdminAuthUser,
   AdminLoginParams,
   AdminLoginResponse,
+  AdminPasswordResetParams,
   AdminSmsLoginParams,
 } from '@/types/admin';
 import {
@@ -84,6 +85,27 @@ export const loginAdminWithSms = async (params: AdminSmsLoginParams) => {
   );
 
   return persistLogin(result, params.autoLogin ?? false);
+};
+
+export const sendAdminPasswordResetCode = async (mobile: string) => {
+  return request<{ message: string; expiresInSeconds?: number }>(
+    '/api/v1/admin/auth/password-reset/code',
+    {
+      method: 'POST',
+      data: { mobile },
+      skipErrorHandler: true,
+    },
+  );
+};
+
+export const resetAdminPassword = async (
+  params: AdminPasswordResetParams,
+) => {
+  return request<{ message: string }>('/api/v1/admin/auth/password-reset', {
+    method: 'POST',
+    data: params,
+    skipErrorHandler: true,
+  });
 };
 
 export const getCurrentAdmin = async (options?: {

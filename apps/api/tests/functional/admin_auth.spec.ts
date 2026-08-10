@@ -152,6 +152,73 @@ test.group('Admin authentication and RBAC', (group) => {
     if (deliveredCodes.size !== 0) throw new Error('Expected no SMS for an unknown mobile')
   })
 
+  test('resets a password with the bound mobile and revokes every session', async ({ client }) => {
+    const mobile = '13400134000'
+    const user = await AdminUser.create({
+      username: 'reset-admin',
+      fullName: 'Reset Admin',
+      email: 'reset-admin@example.com',
+      mobile,
+      password: 'StrongPassword123!',
+      status: true,
+      isSuperAdmin: true,
+    })
+    const firstToken = await AdminUser.accessTokens.create(user)
+    const secondToken = await AdminUser.accessTokens.create(user)
+
+    const unknown = await client.post('/api/v1/admin/auth/password-reset/code').json({
+      mobile: '13300133000',
+    })
+    unknown.assertStatus(422)
+    unknown.assertBodyContains({ code: 'E_ADMIN_MOBILE_NOT_BOUND' })
+    if (deliveredCodes.has('13300133000')) {
+      throw new Error('Expected no password reset SMS for an unknown mobile')
+    }
+
+    const sent = await client.post('/api/v1/admin/auth/password-reset/code').json({ mobile })
+    sent.assertStatus(200)
+    const code = deliveredCodes.get(mobile)
+    if (!code) throw new Error('Expected a password reset verification code')
+
+    const invalid = await client.post('/api/v1/admin/auth/password-reset').json({
+      mobile,
+      code: '000000',
+      newPassword: 'NewPassword456!',
+    })
+    invalid.assertStatus(422)
+    invalid.assertBodyContains({ code: 'E_INVALID_SMS_CODE' })
+
+    const reset = await client.post('/api/v1/admin/auth/password-reset').json({
+      mobile,
+      code,
+      newPassword: 'NewPassword456!',
+    })
+    reset.assertStatus(200)
+
+    await user.refresh()
+    if (!(await user.verifyPassword('NewPassword456!'))) {
+      throw new Error('Expected the reset password to be persisted')
+    }
+    if (await user.verifyPassword('StrongPassword123!')) {
+      throw new Error('Expected the old password to be rejected after reset')
+    }
+
+    for (const token of [firstToken, secondToken]) {
+      const session = await client
+        .get('/api/v1/admin/auth/me')
+        .header('Authorization', `Bearer ${token.value!.release()}`)
+      session.assertStatus(401)
+    }
+
+    const reused = await client.post('/api/v1/admin/auth/password-reset').json({
+      mobile,
+      code,
+      newPassword: 'AnotherPassword789!',
+    })
+    reused.assertStatus(422)
+    reused.assertBodyContains({ code: 'E_INVALID_SMS_CODE' })
+  })
+
   test('changes the current password and revokes other sessions', async ({ client }) => {
     const user = await AdminUser.create({
       username: 'password-admin',

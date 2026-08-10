@@ -1,6 +1,7 @@
 import AdminAuthService from '#services/admin_auth_service'
 import AdminSecurityService, {
   AdminMobileAlreadyBoundError,
+  AdminMobileNotBoundError,
   AdminMobileUnchangedError,
   CurrentPasswordInvalidError,
   InvalidMobileCodeError,
@@ -9,12 +10,76 @@ import AdminSecurityService, {
 import { SmsRateLimitError } from '#services/sms/sms_service'
 import {
   changeAdminPasswordValidator,
+  resetAdminPasswordCodeValidator,
+  resetAdminPasswordValidator,
   sendAdminMobileCodeValidator,
   updateAdminMobileValidator,
 } from '#validators/admin_auth'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class AdminSecurityController {
+  async sendPasswordResetCode({ request, response, logger }: HttpContext) {
+    const { mobile } = await request.validateUsing(resetAdminPasswordCodeValidator)
+
+    try {
+      const result = await AdminSecurityService.sendPasswordResetCode(mobile, request.ip())
+      return { message: 'Verification code sent', expiresInSeconds: result.expiresInSeconds }
+    } catch (error) {
+      if (error instanceof AdminMobileNotBoundError) {
+        return response.unprocessableEntity({
+          code: 'E_ADMIN_MOBILE_NOT_BOUND',
+          message: error.message,
+        })
+      }
+      if (error instanceof SmsRateLimitError) {
+        response.header('Retry-After', String(error.retryAfterSeconds))
+        return response.tooManyRequests({
+          code: 'E_SMS_RATE_LIMITED',
+          message: 'Please wait before requesting another verification code',
+          retryAfterSeconds: error.retryAfterSeconds,
+        })
+      }
+
+      logger.error(
+        { errorName: error instanceof Error ? error.name : 'UnknownError' },
+        'Failed to send administrator password reset SMS'
+      )
+      return response.badGateway({
+        code: 'E_SMS_SEND_FAILED',
+        message: 'Failed to send verification code',
+      })
+    }
+  }
+
+  async resetPassword({ request, response }: HttpContext) {
+    const { mobile, code, newPassword } = await request.validateUsing(resetAdminPasswordValidator)
+
+    try {
+      await AdminSecurityService.resetPassword(mobile, code, newPassword)
+      return { message: 'Password reset' }
+    } catch (error) {
+      if (error instanceof AdminMobileNotBoundError) {
+        return response.unprocessableEntity({
+          code: 'E_ADMIN_MOBILE_NOT_BOUND',
+          message: error.message,
+        })
+      }
+      if (error instanceof InvalidMobileCodeError) {
+        return response.unprocessableEntity({
+          code: 'E_INVALID_SMS_CODE',
+          message: error.message,
+        })
+      }
+      if (error instanceof PasswordUnchangedError) {
+        return response.unprocessableEntity({
+          code: 'E_PASSWORD_UNCHANGED',
+          message: error.message,
+        })
+      }
+      throw error
+    }
+  }
+
   async updatePassword({ auth, request, response }: HttpContext) {
     const user = auth.getUserOrFail()
     const { currentPassword, newPassword } = await request.validateUsing(

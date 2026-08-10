@@ -7,6 +7,8 @@ export type ScannedRoutes = {
     'admin.auth.login': { paramsTuple?: []; params?: {} }
     'admin.auth.sms.send': { paramsTuple?: []; params?: {} }
     'admin.auth.sms.login': { paramsTuple?: []; params?: {} }
+    'admin.auth.passwordReset.code': { paramsTuple?: []; params?: {} }
+    'admin.auth.passwordReset': { paramsTuple?: []; params?: {} }
     'admin.auth.me': { paramsTuple?: []; params?: {} }
     'admin.auth.update': { paramsTuple?: []; params?: {} }
     'admin.auth.logout': { paramsTuple?: []; params?: {} }
@@ -69,6 +71,8 @@ export type ScannedRoutes = {
     'admin.auth.login': { paramsTuple?: []; params?: {} }
     'admin.auth.sms.send': { paramsTuple?: []; params?: {} }
     'admin.auth.sms.login': { paramsTuple?: []; params?: {} }
+    'admin.auth.passwordReset.code': { paramsTuple?: []; params?: {} }
+    'admin.auth.passwordReset': { paramsTuple?: []; params?: {} }
     'admin.auth.security.mobile.code': { paramsTuple?: []; params?: {} }
     'admin.admin_roles.store': { paramsTuple?: []; params?: {} }
     'admin.admin_permissions.store': { paramsTuple?: []; params?: {} }

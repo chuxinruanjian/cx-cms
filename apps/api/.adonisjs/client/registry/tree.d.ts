@@ -9,6 +9,9 @@ export interface ApiDefinition {
         send: typeof routes['admin.auth.sms.send']
         login: typeof routes['admin.auth.sms.login']
       }
+      passwordReset: typeof routes['admin.auth.passwordReset'] & {
+        code: typeof routes['admin.auth.passwordReset.code']
+      }
       me: typeof routes['admin.auth.me']
       update: typeof routes['admin.auth.update']
       logout: typeof routes['admin.auth.logout']

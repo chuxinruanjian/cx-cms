@@ -331,6 +331,8 @@ AI 开发前请先阅读根目录 `AGENTS.md`；修改管理后台时还需要�
 - `POST /api/v1/admin/auth/login`
 - `POST /api/v1/admin/auth/sms/send`
 - `POST /api/v1/admin/auth/sms/login`
+- `POST /api/v1/admin/auth/password-reset/code`
+- `POST /api/v1/admin/auth/password-reset`
 - `GET /api/v1/admin/auth/me`
 - `PATCH /api/v1/admin/auth/me`
 - `PATCH /api/v1/admin/auth/security/password`
@@ -355,18 +357,23 @@ ALIYUN_ACCESS_KEY_SECRET=请填写 AccessKey Secret
 ALIYUN_SMS_SIGN_NAME=请填写短信签名
 ALIYUN_SMS_LOGIN_TEMPLATE_CODE=SMS_000000000
 ALIYUN_SMS_SECURITY_MOBILE_TEMPLATE_CODE=SMS_000000001
+ALIYUN_SMS_PASSWORD_RESET_TEMPLATE_CODE=SMS_000000002
 ALIYUN_SMS_ENDPOINT=dysmsapi.aliyuncs.com
 ```
 
 `ALIYUN_SMS_LOGIN_TEMPLATE_CODE` 仅用于后台短信登录；
-`ALIYUN_SMS_SECURITY_MOBILE_TEMPLATE_CODE` 专门用于密保手机绑定和换绑。两个场景
-必须分别配置对应的阿里云模板，模板变量都使用 `code`。
+`ALIYUN_SMS_SECURITY_MOBILE_TEMPLATE_CODE` 专门用于密保手机绑定和换绑。
+`ALIYUN_SMS_PASSWORD_RESET_TEMPLATE_CODE` 专门
+用于忘记密码时的短信验证。三个模板的验证码变量都使用 `code`。
 
 密钥只写入 `.env`，不要提交 Git。发送接口会校验管理员手机号和状态；手机号
 未绑定有效管理员账号时返回 `E_ADMIN_MOBILE_NOT_BOUND`，且不会调用短信服务。
 验证码有效期为 5 分钟，同一手机号 60 秒内不可重复发送，同一 IP 10 分钟最多
 发送 10 次；验证码只保存 Argon 哈希，连续校验失败 5 次后失效，成功登录后
 立即作废且不可重复使用。
+
+忘记密码仅允许使用已绑定到启用管理员账号的手机号获取验证码；验证成功后更新
+密码并撤销该管理员的全部登录令牌。新密码至少 8 位，且必须同时包含字母和数字。
 
 当前管理员可通过 `PATCH /api/v1/admin/auth/me` 更新昵称、邮箱和个人简介。
 头像先通过统一上传组件上传，再将 `avatarAttachmentId` 随基本资料提交；接口

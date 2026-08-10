@@ -159,6 +159,7 @@ export default defineConfig({
       variant: 'filled',
       theme: {
         token: {
+          colorPrimary: defaultSettings.colorPrimary,
           fontFamily: 'AlibabaSans, sans-serif',
         },
       },
