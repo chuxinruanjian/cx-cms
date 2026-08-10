@@ -76,8 +76,9 @@ changes, run typecheck, tests, and builds for every affected workspace.
   payment certificate.
 - API routes use the `/api/v1` prefix. Keep transport concerns in controllers,
   validation in validators, and reusable business logic in services.
-- Every management-side table uses the `admin_` prefix. The RBAC schema consists
-  of `admin_users`, `admin_access_tokens`, `admin_roles`, `admin_permissions`,
+- Every management-only table uses the `admin_` prefix. Shared infrastructure
+  tables such as attachments are explicitly exempt. The RBAC schema consists of
+  `admin_users`, `admin_access_tokens`, `admin_roles`, `admin_permissions`,
   `admin_user_roles`, and `admin_role_permissions`.
 - Management authentication routes use `/api/v1/admin/auth/*`. There is no public
   administrator signup route; create the first account with `npm run db:seed`.
@@ -87,8 +88,9 @@ changes, run typecheck, tests, and builds for every affected workspace.
 - Permission codes use dot-separated lowercase names such as
   `admin.roles.update`. Protect management routes with the named `adminRbac`
   middleware instead of duplicating role checks in controllers.
-- File tables use `admin_attachments`, `admin_attachment_relations`,
-  `admin_upload_sessions`, and `admin_upload_chunks`. Business tables store
+- File tables use `attachments`, `attachment_relations`, `upload_sessions`, and
+  `upload_chunks`. They are shared infrastructure tables and therefore do not
+  use the management-only `admin_` prefix. Business tables store
   attachment IDs or bind through `AttachmentService`; they never store local
   storage paths as their only file reference.
 - All upload scenarios use the services under `app/services/upload`. Business
@@ -111,7 +113,7 @@ changes, run typecheck, tests, and builds for every affected workspace.
   files and multipart sessions.
 - `POST /attachments/bind` synchronizes the complete attachment set for one
   business type, ID, and field. Send an empty list to clear the field; never
-  mutate `admin_attachment_relations` directly from a controller.
+  mutate `attachment_relations` directly from a controller.
 
 ## Frontend rules
 

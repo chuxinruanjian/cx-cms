@@ -1,6 +1,6 @@
 import UploadException from '#exceptions/upload_exception'
-import AdminAttachment from '#models/admin_attachment'
-import AdminAttachmentRelation from '#models/admin_attachment_relation'
+import Attachment from '#models/attachment'
+import AttachmentRelation from '#models/attachment_relation'
 import AdminRbacService from '#services/admin_rbac_service'
 import AttachmentService from '#services/upload/attachment_service'
 import StorageManager from '#services/upload/storage/storage_manager'
@@ -16,7 +16,7 @@ export default class AttachmentsController {
   async index({ auth, request }: HttpContext) {
     auth.getUserOrFail()
     const filters = await request.validateUsing(listAttachmentsValidator)
-    const query = AdminAttachment.query().orderBy('id', 'desc')
+    const query = Attachment.query().orderBy('id', 'desc')
     if (filters.search) query.whereLike('original_name', `%${filters.search}%`)
     if (filters.fileType) query.where('file_type', filters.fileType)
     if (filters.status) query.where('status', filters.status)
@@ -37,7 +37,7 @@ export default class AttachmentsController {
     const result = await query.paginate(filters.page || 1, filters.perPage || 20)
     const data = await Promise.all(
       result.all().map(async (attachment) => {
-        const count = await AdminAttachmentRelation.query()
+        const count = await AttachmentRelation.query()
           .where('attachment_id', attachment.id)
           .count('* as total')
           .first()
@@ -87,7 +87,7 @@ export default class AttachmentsController {
   }
 
   async destroy({ auth, params }: HttpContext) {
-    const attachment = await AdminAttachment.findOrFail(params.id)
+    const attachment = await Attachment.findOrFail(params.id)
     return AttachmentService.delete(auth.getUserOrFail(), attachment)
   }
 
@@ -95,7 +95,7 @@ export default class AttachmentsController {
     user: Awaited<ReturnType<HttpContext['auth']['getUserOrFail']>>,
     id: number
   ) {
-    const attachment = await AdminAttachment.findOrFail(id)
+    const attachment = await Attachment.findOrFail(id)
     if (
       attachment.uploaderId !== user.id &&
       !(await AdminRbacService.allows(user, { permissions: ['admin.attachments.view'] }))

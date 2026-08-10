@@ -29,12 +29,12 @@ apps/admin/src/
 
 ## 数据与生命周期
 
-四张表统一使用后台 `admin_` 前缀：
+四张表属于共享素材基础设施，不使用后台专属的 `admin_` 前缀：
 
-- `admin_attachments`：源文件和派生文件记录。
-- `admin_attachment_relations`：文件与任意业务记录的多态关联。
-- `admin_upload_sessions`：分片任务、有效期和服务商上传 ID。
-- `admin_upload_chunks`：分片序号、大小、SHA-256、ETag 和状态。
+- `attachments`：源文件和派生文件记录。
+- `attachment_relations`：文件与任意业务记录的多态关联。
+- `upload_sessions`：分片任务、有效期和服务商上传 ID。
+- `upload_chunks`：分片序号、大小、SHA-256、ETag 和状态。
 
 生命周期为：
 
@@ -198,7 +198,7 @@ FFmpeg 或云转码 SDK，因此默认只保存并校验原文件，不生成缩
 视频封面或转码文件。
 
 业务需要媒体处理时，应增加独立处理服务和队列：派生文件继续写入
-`admin_attachments`，通过 `parent_attachment_id` 关联源文件；处理失败
+`attachments`，通过 `parent_attachment_id` 关联源文件；处理失败
 记录错误但不伪造成功 URL。CPU 密集型图片压缩、视频时长提取和转码不要放
 在上传 HTTP 请求中同步执行。
 

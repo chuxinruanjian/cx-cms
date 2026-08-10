@@ -1,6 +1,6 @@
 import AdminPermission from '#models/admin_permission'
 import AdminRole from '#models/admin_role'
-import AdminAttachmentRelation from '#models/admin_attachment_relation'
+import AttachmentRelation from '#models/attachment_relation'
 import AdminUser from '#models/admin_user'
 import testUtils from '@adonisjs/core/services/test_utils'
 import { test } from '@japa/runner'
@@ -127,7 +127,7 @@ test.group('Admin authentication and RBAC', (group) => {
     if (user.profile !== 'Reusable project administrator') {
       throw new Error('Expected the profile to be persisted')
     }
-    const relation = await AdminAttachmentRelation.query()
+    const relation = await AttachmentRelation.query()
       .where('attachment_id', attachmentId)
       .where('business_type', 'admin_user')
       .where('business_id', String(user.id))
