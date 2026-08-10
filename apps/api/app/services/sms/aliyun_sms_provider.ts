@@ -27,12 +27,14 @@ export class AliyunSmsError extends Error {
 }
 
 export default class AliyunSmsProvider {
-  static async sendVerificationCode(mobile: string, code: string): Promise<SmsSendResult> {
+  static async sendVerificationCode(
+    mobile: string,
+    code: string,
+    templateCode: string | undefined
+  ): Promise<SmsSendResult> {
     const accessKeyId = env.get('ALIYUN_ACCESS_KEY_ID')
     const accessKeySecret = env.get('ALIYUN_ACCESS_KEY_SECRET')
     const signName = env.get('ALIYUN_SMS_SIGN_NAME')
-    const templateCode = env.get('ALIYUN_SMS_LOGIN_TEMPLATE_CODE')
-
     if (!accessKeyId || !accessKeySecret || !signName || !templateCode) {
       throw new AliyunSmsError('Aliyun SMS is not configured')
     }

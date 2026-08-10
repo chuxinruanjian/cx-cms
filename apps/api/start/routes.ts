@@ -13,6 +13,7 @@ import app from '@adonisjs/core/services/app'
 import router from '@adonisjs/core/services/router'
 
 const AccessTokensController = () => import('#controllers/access_tokens_controller')
+const AdminSecurityController = () => import('#controllers/admin_security_controller')
 const AdminUsersController = () => import('#controllers/admin_users_controller')
 const AdminRolesController = () => import('#controllers/admin_roles_controller')
 const AdminPermissionsController = () => import('#controllers/admin_permissions_controller')
@@ -45,6 +46,15 @@ router
         router.get('auth/me', [AccessTokensController, 'show']).as('auth.me')
         router.patch('auth/me', [AccessTokensController, 'update']).as('auth.update')
         router.delete('auth/logout', [AccessTokensController, 'destroy']).as('auth.logout')
+        router
+          .patch('auth/security/password', [AdminSecurityController, 'updatePassword'])
+          .as('auth.security.password')
+        router
+          .post('auth/security/mobile/code', [AdminSecurityController, 'sendMobileCode'])
+          .as('auth.security.mobile.code')
+        router
+          .put('auth/security/mobile', [AdminSecurityController, 'updateMobile'])
+          .as('auth.security.mobile')
 
         router
           .get('users', [AdminUsersController, 'index'])

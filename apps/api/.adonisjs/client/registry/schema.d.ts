@@ -79,6 +79,42 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/access_tokens_controller').default['destroy']>>>
     }
   }
+  'admin.auth.security.password': {
+    methods: ["PATCH"]
+    pattern: '/api/v1/admin/auth/security/password'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/admin_auth').changeAdminPasswordValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/admin_auth').changeAdminPasswordValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_security_controller').default['updatePassword']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_security_controller').default['updatePassword']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.auth.security.mobile.code': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/auth/security/mobile/code'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/admin_auth').sendAdminMobileCodeValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/admin_auth').sendAdminMobileCodeValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_security_controller').default['sendMobileCode']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_security_controller').default['sendMobileCode']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.auth.security.mobile': {
+    methods: ["PUT"]
+    pattern: '/api/v1/admin/auth/security/mobile'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/admin_auth').updateAdminMobileValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/admin_auth').updateAdminMobileValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_security_controller').default['updateMobile']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_security_controller').default['updateMobile']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'admin.admin_users.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/admin/users'

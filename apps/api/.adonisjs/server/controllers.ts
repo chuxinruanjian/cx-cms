@@ -7,6 +7,7 @@ export const controllers = {
   AccessTokens: () => import('#controllers/access_tokens_controller'),
   AdminPermissions: () => import('#controllers/admin_permissions_controller'),
   AdminRoles: () => import('#controllers/admin_roles_controller'),
+  AdminSecurity: () => import('#controllers/admin_security_controller'),
   AdminUsers: () => import('#controllers/admin_users_controller'),
   Attachments: () => import('#controllers/attachments_controller'),
   UploadCleanup: () => import('#controllers/upload_cleanup_controller'),
