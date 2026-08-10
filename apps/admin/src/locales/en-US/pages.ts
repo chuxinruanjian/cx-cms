@@ -30,6 +30,27 @@ export default {
   'pages.login.username.required': 'Please input your username!',
   'pages.login.password.placeholder': 'Password',
   'pages.login.password.required': 'Please input your password!',
+  'pages.login.forgotPassword': 'Forgot password',
+  'pages.login.reset.title': 'Reset account password',
+  'pages.login.reset.newPassword.placeholder': 'Enter a new password',
+  'pages.login.reset.newPassword.required': 'Please enter a new password!',
+  'pages.login.reset.newPassword.invalid':
+    'Use at least 8 characters including both letters and numbers!',
+  'pages.login.reset.confirmPassword.placeholder':
+    'Enter the new password again',
+  'pages.login.reset.confirmPassword.required':
+    'Please confirm the new password!',
+  'pages.login.reset.confirmPassword.mismatch':
+    'The two passwords do not match!',
+  'pages.login.reset.success':
+    'Password reset. Sign in with your new password!',
+  'pages.login.reset.failure':
+    'Failed to reset the password. Please try again!',
+  'pages.login.reset.codeInvalid':
+    'The verification code is incorrect or has expired!',
+  'pages.login.reset.passwordUnchanged':
+    'The new password must be different from the current password!',
+  'pages.login.reset.submit': 'Reset password',
   'pages.login.rememberMe': 'Remember me',
   'pages.login.submit': 'Login',
   'pages.login.registerAccount': 'Register Account',

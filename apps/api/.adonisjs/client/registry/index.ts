@@ -24,6 +24,18 @@ const routes = {
     tokens: [{"old":"/api/v1/admin/auth/sms/login","type":0,"val":"api","end":""},{"old":"/api/v1/admin/auth/sms/login","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/auth/sms/login","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/auth/sms/login","type":0,"val":"auth","end":""},{"old":"/api/v1/admin/auth/sms/login","type":0,"val":"sms","end":""},{"old":"/api/v1/admin/auth/sms/login","type":0,"val":"login","end":""}],
     types: placeholder as Registry['admin.auth.sms.login']['types'],
   },
+  'admin.auth.passwordReset.code': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/auth/password-reset/code',
+    tokens: [{"old":"/api/v1/admin/auth/password-reset/code","type":0,"val":"api","end":""},{"old":"/api/v1/admin/auth/password-reset/code","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/auth/password-reset/code","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/auth/password-reset/code","type":0,"val":"auth","end":""},{"old":"/api/v1/admin/auth/password-reset/code","type":0,"val":"password-reset","end":""},{"old":"/api/v1/admin/auth/password-reset/code","type":0,"val":"code","end":""}],
+    types: placeholder as Registry['admin.auth.passwordReset.code']['types'],
+  },
+  'admin.auth.passwordReset': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/auth/password-reset',
+    tokens: [{"old":"/api/v1/admin/auth/password-reset","type":0,"val":"api","end":""},{"old":"/api/v1/admin/auth/password-reset","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/auth/password-reset","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/auth/password-reset","type":0,"val":"auth","end":""},{"old":"/api/v1/admin/auth/password-reset","type":0,"val":"password-reset","end":""}],
+    types: placeholder as Registry['admin.auth.passwordReset']['types'],
+  },
   'admin.auth.me': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/admin/auth/me',

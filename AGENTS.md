@@ -82,6 +82,9 @@ changes, run typecheck, tests, and builds for every affected workspace.
   `admin_user_roles`, and `admin_role_permissions`.
 - Management authentication routes use `/api/v1/admin/auth/*`. There is no public
   administrator signup route; create the first account with `npm run db:seed`.
+- Password recovery accepts only a mobile bound to an active administrator, uses
+  the dedicated `admin_password_reset` SMS scene/template, and revokes every
+  access token after a successful reset.
 - Administrator SMS login uses the shared `sms_codes` table and the services under
   `app/services/sms`. Keep codes hashed, short-lived, rate-limited, single-use,
   and out of application logs. Provider credentials, sign names, and template

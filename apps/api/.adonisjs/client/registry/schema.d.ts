@@ -43,6 +43,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/access_tokens_controller').default['smsLogin']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'admin.auth.passwordReset.code': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/auth/password-reset/code'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/admin_auth').resetAdminPasswordCodeValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/admin_auth').resetAdminPasswordCodeValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_security_controller').default['sendPasswordResetCode']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_security_controller').default['sendPasswordResetCode']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.auth.passwordReset': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/auth/password-reset'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/admin_auth').resetAdminPasswordValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/admin_auth').resetAdminPasswordValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_security_controller').default['resetPassword']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_security_controller').default['resetPassword']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'admin.auth.me': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/admin/auth/me'

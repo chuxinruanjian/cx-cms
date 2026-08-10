@@ -37,6 +37,12 @@ export interface AdminSmsLoginParams {
   autoLogin?: boolean;
 }
 
+export interface AdminPasswordResetParams {
+  mobile: string;
+  code: string;
+  newPassword: string;
+}
+
 export interface AdminLoginFormValues {
   username?: string;
   password?: string;
