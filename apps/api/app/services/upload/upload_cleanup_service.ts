@@ -29,7 +29,7 @@ export default class UploadCleanupService {
     }
 
     const attachments = await Attachment.query()
-      .where('status', 'temporary')
+      .whereIn('status', ['uploading', 'temporary', 'failed'])
       .where('expires_at', '<', now.toSQL()!)
       .whereDoesntHave('relations', () => {})
     for (const attachment of attachments) {

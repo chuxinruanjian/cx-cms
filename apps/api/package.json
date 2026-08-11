@@ -78,6 +78,7 @@
     "better-sqlite3": "^12.10.0",
     "luxon": "^3.7.2",
     "mysql2": "^3.14.4",
+    "qiniu": "^7.15.2",
     "reflect-metadata": "^0.2.2"
   },
   "hotHook": {

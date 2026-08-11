@@ -107,6 +107,10 @@ changes, run typecheck, tests, and builds for every affected workspace.
   storage paths as their only file reference.
 - All upload scenarios use the services under `app/services/upload`. Business
   code must use `StorageManager`, never a concrete OSS/S3 SDK directly.
+- Local storage remains the default. Qiniu uses the `qiniu` storage adapter and
+  server-only `QINIU_*` environment variables. Browser direct upload must obtain
+  a scoped short-lived token from the API and complete server-side object
+  verification; never expose the Qiniu secret key to a frontend application.
 - Frontend upload scenarios use `apps/admin/src/components/Uploader` and its
   shared task manager. Do not implement page-specific upload requests, retry, or
   deletion state. Multi-image fields use the shared `picture-card` photo wall;

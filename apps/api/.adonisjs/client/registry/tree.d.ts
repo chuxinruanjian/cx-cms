@@ -47,6 +47,8 @@ export interface ApiDefinition {
       index: typeof routes['admin.uploads.index']
       store: typeof routes['admin.uploads.store']
       initialize: typeof routes['admin.uploads.initialize']
+      initializeDirect: typeof routes['admin.uploads.initialize_direct']
+      completeDirect: typeof routes['admin.uploads.complete_direct']
       storeChunk: typeof routes['admin.uploads.store_chunk']
       show: typeof routes['admin.uploads.show']
       complete: typeof routes['admin.uploads.complete']

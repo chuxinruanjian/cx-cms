@@ -331,6 +331,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/uploads_controller').default['initialize']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'admin.uploads.initialize_direct': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/uploads/direct/init'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/admin_upload').initializeUploadValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/admin_upload').initializeUploadValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/uploads_controller').default['initializeDirect']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/uploads_controller').default['initializeDirect']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.uploads.complete_direct': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/uploads/direct/:attachmentId/complete'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/admin_upload').completeDirectUploadValidator)>>
+      paramsTuple: [ParamValue]
+      params: { attachmentId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/admin_upload').completeDirectUploadValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/uploads_controller').default['completeDirect']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/uploads_controller').default['completeDirect']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'admin.uploads.store_chunk': {
     methods: ["POST"]
     pattern: '/api/v1/admin/uploads/:uploadId/chunks'

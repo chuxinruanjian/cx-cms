@@ -4,7 +4,12 @@ import AttachmentRelation from '#models/attachment_relation'
 import UploadSession from '#models/upload_session'
 import AdminUser from '#models/admin_user'
 import AttachmentService from '#services/upload/attachment_service'
-import type { StorageAdapter, StoredObject } from '#services/upload/storage/storage_adapter'
+import type {
+  DirectUploadAuthorization,
+  StorageAdapter,
+  StoredObject,
+  StoredObjectMetadata,
+} from '#services/upload/storage/storage_adapter'
 import StorageManager from '#services/upload/storage/storage_manager'
 import UploadCleanupService from '#services/upload/upload_cleanup_service'
 import testUtils from '@adonisjs/core/services/test_utils'
@@ -88,6 +93,60 @@ class FakeOssAdapter implements StorageAdapter {
   }
 }
 
+class FakeQiniuAdapter implements StorageAdapter {
+  readonly disk = 'qiniu' as const
+  readonly objects = new Map<string, StoredObjectMetadata>()
+
+  async put(_sourcePath: string, objectKey: string): Promise<StoredObject> {
+    return { disk: this.disk, objectKey, storagePath: objectKey, url: this.url(objectKey) }
+  }
+
+  async delete(objectKey: string) {
+    this.objects.delete(objectKey)
+  }
+
+  async exists(objectKey: string) {
+    return this.objects.has(objectKey)
+  }
+
+  async read() {
+    return Readable.from(Buffer.from('qiniu'))
+  }
+
+  async abortMultipart() {}
+
+  createDirectUpload(objectKey: string): DirectUploadAuthorization {
+    return {
+      uploadUrl: 'https://upload.example.test',
+      token: 'scoped-provider-token',
+      objectKey,
+      expiresIn: 600,
+    }
+  }
+
+  async inspect(objectKey: string) {
+    const object = this.objects.get(objectKey)
+    if (!object) throw new Error('Object is missing')
+    return object
+  }
+
+  object(objectKey: string, size: number, mimeType: string): StoredObjectMetadata {
+    return {
+      disk: this.disk,
+      objectKey,
+      storagePath: objectKey,
+      url: this.url(objectKey),
+      size,
+      mimeType,
+      hash: 'qiniu-etag',
+    }
+  }
+
+  private url(objectKey: string) {
+    return `https://cdn.example.test/${objectKey}`
+  }
+}
+
 test.group('Unified admin uploads', (group) => {
   group.each.setup(() => testUtils.db().truncate())
   group.each.setup(async () => {
@@ -149,6 +208,55 @@ test.group('Unified admin uploads', (group) => {
     await adapter.exists(attachment.objectKey!).then((exists) => {
       if (exists) throw new Error('Expected stored file to be deleted')
     })
+  })
+
+  test('issues a scoped Qiniu direct token and verifies the object before completion', async ({
+    client,
+  }) => {
+    const mutableConfig = uploadConfig as unknown as { directUploadEnabled: boolean }
+    const previousDirect = mutableConfig.directUploadEnabled
+    mutableConfig.directUploadEnabled = true
+    const adapter = new FakeQiniuAdapter()
+    StorageManager.register('qiniu', adapter)
+
+    try {
+      const user = await createUser('qiniu-direct')
+      const authorization = await bearer(user)
+      const value = png()
+      const initialized = await client
+        .post('/api/v1/admin/uploads/direct/init')
+        .header('Authorization', authorization)
+        .json({
+          originalName: 'direct.png',
+          mimeType: 'image/png',
+          fileSize: value.length,
+          uploadToken: 'qiniu_draft_123',
+        })
+
+      initialized.assertStatus(201)
+      initialized.assertBodyContains({
+        provider: 'qiniu',
+        uploadUrl: 'https://upload.example.test',
+        providerToken: 'scoped-provider-token',
+      })
+      const body = initialized.body() as { attachmentId: number; objectKey: string }
+      adapter.objects.set(body.objectKey, adapter.object(body.objectKey, value.length, 'image/png'))
+
+      const completed = await client
+        .post(`/api/v1/admin/uploads/direct/${body.attachmentId}/complete`)
+        .header('Authorization', authorization)
+        .json({ uploadToken: 'qiniu_draft_123' })
+      completed.assertStatus(200)
+      completed.assertBodyContains({
+        id: body.attachmentId,
+        storageDisk: 'qiniu',
+        uploadMode: 'direct',
+        status: 'temporary',
+        url: `https://cdn.example.test/${body.objectKey}`,
+      })
+    } finally {
+      mutableConfig.directUploadEnabled = previousDirect
+    }
   })
 
   test('supports multipart retry, duplicate chunks, resume status, and integrity checking', async ({

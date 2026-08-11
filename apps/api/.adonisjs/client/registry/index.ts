@@ -168,6 +168,18 @@ const routes = {
     tokens: [{"old":"/api/v1/admin/uploads/init","type":0,"val":"api","end":""},{"old":"/api/v1/admin/uploads/init","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/uploads/init","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/uploads/init","type":0,"val":"uploads","end":""},{"old":"/api/v1/admin/uploads/init","type":0,"val":"init","end":""}],
     types: placeholder as Registry['admin.uploads.initialize']['types'],
   },
+  'admin.uploads.initialize_direct': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/uploads/direct/init',
+    tokens: [{"old":"/api/v1/admin/uploads/direct/init","type":0,"val":"api","end":""},{"old":"/api/v1/admin/uploads/direct/init","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/uploads/direct/init","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/uploads/direct/init","type":0,"val":"uploads","end":""},{"old":"/api/v1/admin/uploads/direct/init","type":0,"val":"direct","end":""},{"old":"/api/v1/admin/uploads/direct/init","type":0,"val":"init","end":""}],
+    types: placeholder as Registry['admin.uploads.initialize_direct']['types'],
+  },
+  'admin.uploads.complete_direct': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/uploads/direct/:attachmentId/complete',
+    tokens: [{"old":"/api/v1/admin/uploads/direct/:attachmentId/complete","type":0,"val":"api","end":""},{"old":"/api/v1/admin/uploads/direct/:attachmentId/complete","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/uploads/direct/:attachmentId/complete","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/uploads/direct/:attachmentId/complete","type":0,"val":"uploads","end":""},{"old":"/api/v1/admin/uploads/direct/:attachmentId/complete","type":0,"val":"direct","end":""},{"old":"/api/v1/admin/uploads/direct/:attachmentId/complete","type":1,"val":"attachmentId","end":""},{"old":"/api/v1/admin/uploads/direct/:attachmentId/complete","type":0,"val":"complete","end":""}],
+    types: placeholder as Registry['admin.uploads.complete_direct']['types'],
+  },
   'admin.uploads.store_chunk': {
     methods: ["POST"],
     pattern: '/api/v1/admin/uploads/:uploadId/chunks',

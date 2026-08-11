@@ -19,4 +19,8 @@ export default {
     'The component handles validation, progress, normal upload, and multipart upload; business pages only manage attachment values.',
   'uploader.demo.multipartHint':
     'The upload threshold and chunk size come from the server. Select a file larger than the threshold to test multipart upload.',
+  'uploader.demo.qiniuDirectHint':
+    'The browser uploads directly to Qiniu with a short-lived token issued by the API. Enable Qiniu as the active disk and turn on direct upload before testing.',
+  'uploader.demo.qiniuDirectReady': 'Qiniu direct upload is ready',
+  'uploader.demo.qiniuDirectDisabled': 'Qiniu direct upload is not enabled',
 };

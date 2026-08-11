@@ -36,7 +36,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   LOG_FILE: Env.schema.string.optional(),
   UPLOAD_DIR: Env.schema.string.optional(),
   PAYMENT_CERT_DIR: Env.schema.string.optional(),
-  UPLOAD_DISK: Env.schema.enum.optional(['local', 'oss', 's3'] as const),
+  UPLOAD_DISK: Env.schema.enum.optional(['local', 'qiniu', 'oss', 's3'] as const),
   UPLOAD_NORMAL_MAX_MB: Env.schema.number.optional(),
   UPLOAD_IMAGE_MAX_MB: Env.schema.number.optional(),
   UPLOAD_VIDEO_MAX_MB: Env.schema.number.optional(),
@@ -55,6 +55,14 @@ export default await Env.create(new URL('../', import.meta.url), {
   UPLOAD_VIRUS_SCAN_ENABLED: Env.schema.boolean.optional(),
   UPLOAD_CONTENT_REVIEW_ENABLED: Env.schema.boolean.optional(),
   UPLOAD_IMAGE_QUALITY: Env.schema.number.optional(),
+
+  // Qiniu Kodo
+  QINIU_ACCESS_KEY: Env.schema.string.optional(),
+  QINIU_SECRET_KEY: Env.schema.secret.optional(),
+  QINIU_BUCKET: Env.schema.string.optional(),
+  QINIU_DOMAIN: Env.schema.string.optional({ format: 'url', tld: false }),
+  QINIU_UPLOAD_URL: Env.schema.string.optional({ format: 'url', tld: false }),
+  QINIU_UPLOAD_TOKEN_TTL_SECONDS: Env.schema.number.optional(),
 
   // Initial administrator (used only by db:seed)
   ADMIN_USERNAME: Env.schema.string.optional(),

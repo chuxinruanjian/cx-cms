@@ -31,6 +31,8 @@ export type ScannedRoutes = {
     'admin.uploads.index': { paramsTuple?: []; params?: {} }
     'admin.uploads.store': { paramsTuple?: []; params?: {} }
     'admin.uploads.initialize': { paramsTuple?: []; params?: {} }
+    'admin.uploads.initialize_direct': { paramsTuple?: []; params?: {} }
+    'admin.uploads.complete_direct': { paramsTuple: [ParamValue]; params: {'attachmentId': ParamValue} }
     'admin.uploads.store_chunk': { paramsTuple: [ParamValue]; params: {'uploadId': ParamValue} }
     'admin.uploads.show': { paramsTuple: [ParamValue]; params: {'uploadId': ParamValue} }
     'admin.uploads.complete': { paramsTuple: [ParamValue]; params: {'uploadId': ParamValue} }
@@ -78,6 +80,8 @@ export type ScannedRoutes = {
     'admin.admin_permissions.store': { paramsTuple?: []; params?: {} }
     'admin.uploads.store': { paramsTuple?: []; params?: {} }
     'admin.uploads.initialize': { paramsTuple?: []; params?: {} }
+    'admin.uploads.initialize_direct': { paramsTuple?: []; params?: {} }
+    'admin.uploads.complete_direct': { paramsTuple: [ParamValue]; params: {'attachmentId': ParamValue} }
     'admin.uploads.store_chunk': { paramsTuple: [ParamValue]; params: {'uploadId': ParamValue} }
     'admin.uploads.complete': { paramsTuple: [ParamValue]; params: {'uploadId': ParamValue} }
     'admin.uploads.abort': { paramsTuple: [ParamValue]; params: {'uploadId': ParamValue} }

@@ -68,6 +68,8 @@ uploading -> temporary -> active
 | GET | `/upload-config` | `admin.attachments.upload` | 读取阈值、分片和限制 |
 | POST | `/uploads` | `admin.attachments.upload` | 小文件普通上传 |
 | POST | `/uploads/init` | `admin.attachments.upload` | 初始化分片上传 |
+| POST | `/uploads/direct/init` | `admin.attachments.upload` | 申请七牛直传凭证并创建附件 |
+| POST | `/uploads/direct/:attachmentId/complete` | `admin.attachments.upload` | 查询七牛对象并完成附件 |
 | POST | `/uploads/:uploadId/chunks` | `admin.attachments.upload` | 上传一个分片 |
 | GET | `/uploads/:uploadId` | `admin.attachments.upload` | 断点续传状态 |
 | POST | `/uploads/:uploadId/complete` | `admin.attachments.upload` | 合并并校验文件 |
@@ -145,14 +147,47 @@ UPLOAD_CHUNK_CONCURRENCY=3
 UPLOAD_MAX_RETRIES=3
 UPLOAD_TEMPORARY_TTL_HOURS=24
 UPLOAD_SESSION_TTL_HOURS=24
+UPLOAD_DIRECT_ENABLED=false
 ```
 
 图片、视频、音频、文档、压缩包和其他文件有独立大小上限。允许扩展名在
 `apps/api/config/upload.ts` 中集中维护，不允许仅依赖前端 `accept`。
 
-`UPLOAD_DEDUPLICATE`、病毒扫描、内容审核、图片质量和 OSS 直传开关已进入
-配置契约，但默认关闭。启用这些能力前必须接入对应处理器，不能只打开环境
-变量。
+`UPLOAD_DEDUPLICATE`、病毒扫描、内容审核和图片质量已进入配置契约，但默认
+关闭。启用这些能力前必须接入对应处理器，不能只打开环境变量。
+
+## 七牛云存储与浏览器直传
+
+默认仍使用本地存储。要把普通上传和服务端分片合并后的产物切换到七牛，并
+启用七牛直传，在 `apps/api/.env` 配置：
+
+```dotenv
+UPLOAD_DISK=qiniu
+UPLOAD_DIRECT_ENABLED=true
+QINIU_ACCESS_KEY=your-access-key
+QINIU_SECRET_KEY=your-secret-key
+QINIU_BUCKET=your-bucket
+QINIU_DOMAIN=https://cdn.example.com
+QINIU_UPLOAD_URL=https://upload.qiniup.com
+QINIU_UPLOAD_TOKEN_TTL_SECONDS=600
+```
+
+`QINIU_UPLOAD_URL` 必须选择空间所在区域对应的 HTTPS 上传域名；示例值适用
+华东区域。`QINIU_DOMAIN` 当前按公开空间/CDN 域名处理。永久密钥只允许存放在
+API 的运行环境或密钥管理系统，不能进入管理端、数据库、日志或 Git。
+
+后台“文件上传 → 七牛云直传”使用共享 `FileUploader`，完整流程为：
+
+1. 管理端向 API 申请限定 bucket、对象 key、MIME 和文件大小的 10 分钟凭证；
+2. 浏览器用 `token`、`key`、`file` 表单字段直接上传至七牛，不经过 API 带宽；
+3. 管理端调用完成接口，API 查询七牛对象大小、MIME 和 ETag；
+4. 校验通过后附件从 `uploading` 进入 `temporary`，后续仍通过统一绑定接口转为
+   `active`。
+
+`UPLOAD_DISK` 控制普通上传和服务端分片产物的存储位置；
+`UPLOAD_DIRECT_ENABLED` 独立控制七牛浏览器直传。因此也可以保持
+`UPLOAD_DISK=local`，只为明确选择直传模式的页面启用七牛。关闭直传开关后，
+演示页会明确拒绝上传。
 
 ## 定时清理与部署
 
@@ -187,8 +222,8 @@ npm run uploads:cleanup
 
 现有 `CloudStorageAdapter` 会明确返回 503，避免误把未配置的 OSS/S3 当成
 可用存储。测试使用假 OSS 适配器验证了删除和终止分片始终经过统一边界。
-客户端直传需要再扩展“申请短期凭证”和“服务端确认对象”接口；在完成对象
-路径、大小、文件头和哈希复核前，不得设置 `UPLOAD_DIRECT_ENABLED=true`。
+OSS/S3 客户端直传仍需分别扩展“申请短期凭证”和“服务端确认对象”能力；
+`UPLOAD_DIRECT_ENABLED` 当前只启用七牛直传，OSS/S3 不会复用七牛凭证流程。
 
 ## 图片、视频和后续处理
 

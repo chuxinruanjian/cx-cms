@@ -28,6 +28,10 @@ export const initializeUploadValidator = vine.create({
   chunkSize: vine.number().positive().optional(),
 })
 
+export const completeDirectUploadValidator = vine.create({
+  uploadToken: uploadToken(),
+})
+
 export const uploadChunkValidator = vine.create({
   chunkIndex: vine.number().min(0),
   chunkHash: hash(),
@@ -60,7 +64,7 @@ export const listAttachmentsValidator = vine.create({
     .enum(['image', 'video', 'audio', 'document', 'archive', 'other'] as const)
     .optional(),
   status: vine.enum(attachmentStatuses).optional(),
-  storageDisk: vine.enum(['local', 'oss', 's3'] as const).optional(),
+  storageDisk: vine.enum(['local', 'qiniu', 'oss', 's3'] as const).optional(),
   uploaderId: vine.number().positive().optional(),
   uploadToken: uploadToken().optional(),
   createdFrom: vine.string().trim().maxLength(40).optional(),

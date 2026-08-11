@@ -21,4 +21,4 @@ export const uploadSessionStatuses = [
 export type UploadSessionStatus = (typeof uploadSessionStatuses)[number]
 export type AttachmentFileType = 'image' | 'video' | 'audio' | 'document' | 'archive' | 'other'
 export type UploadMode = 'normal' | 'multipart' | 'direct'
-export type StorageDisk = 'local' | 'oss' | 's3'
+export type StorageDisk = 'local' | 'qiniu' | 'oss' | 's3'

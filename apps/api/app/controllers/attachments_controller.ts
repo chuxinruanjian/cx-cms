@@ -10,6 +10,7 @@ import {
   sortAttachmentsValidator,
 } from '#validators/admin_upload'
 import type { HttpContext } from '@adonisjs/core/http'
+import type { StorageDisk } from '#types/upload'
 import { DateTime } from 'luxon'
 
 export default class AttachmentsController {
@@ -61,7 +62,7 @@ export default class AttachmentsController {
         404
       )
     }
-    const stream = await StorageManager.disk(attachment.storageDisk as 'local' | 'oss' | 's3').read(
+    const stream = await StorageManager.disk(attachment.storageDisk as StorageDisk).read(
       attachment.objectKey
     )
     const disposition = request.input('download') === '1' ? 'attachment' : 'inline'

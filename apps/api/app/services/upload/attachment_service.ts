@@ -6,7 +6,7 @@ import type AdminUser from '#models/admin_user'
 import AdminRbacService from '#services/admin_rbac_service'
 import FileInspectorService from '#services/upload/file_inspector_service'
 import StorageManager from '#services/upload/storage/storage_manager'
-import type { UploadMode } from '#types/upload'
+import type { StorageDisk, UploadMode } from '#types/upload'
 import logger from '@adonisjs/core/services/logger'
 import db from '@adonisjs/lucid/services/db'
 import { randomUUID } from 'node:crypto'
@@ -27,7 +27,132 @@ interface BindInput {
   fieldName: string
 }
 
+interface DirectUploadInput {
+  originalName: string
+  mimeType: string
+  fileSize: number
+  uploadToken: string
+}
+
 export default class AttachmentService {
+  static async initializeDirect(user: AdminUser, input: DirectUploadInput) {
+    if (!uploadConfig.directUploadEnabled) {
+      throw new UploadException(
+        'Qiniu direct upload is not enabled',
+        'E_UPLOAD_DIRECT_DISABLED',
+        503
+      )
+    }
+
+    const originalName = FileInspectorService.sanitizeOriginalName(input.originalName)
+    const mimeType = input.mimeType || 'application/octet-stream'
+    const fileType = FileInspectorService.classify(originalName, mimeType)
+    FileInspectorService.assertSize(fileType, input.fileSize)
+    const extension = FileInspectorService.extension(originalName)
+    const now = DateTime.now()
+    const uuid = randomUUID()
+    const objectKey = this.objectKey(fileType, uuid, extension, now)
+    const authorization = StorageManager.direct('qiniu').createDirectUpload(
+      objectKey,
+      input.fileSize,
+      mimeType
+    )
+    const attachment = await Attachment.create({
+      uuid,
+      parentAttachmentId: null,
+      originalName,
+      storageDisk: 'qiniu',
+      storagePath: objectKey,
+      objectKey,
+      url: null,
+      extension,
+      mimeType,
+      fileType,
+      size: input.fileSize,
+      hash: null,
+      width: null,
+      height: null,
+      duration: null,
+      status: 'uploading',
+      uploadMode: 'direct',
+      uploadToken: input.uploadToken,
+      uploaderId: user.id,
+      isComplete: false,
+      errorMessage: null,
+      lastUsedAt: now,
+      boundAt: null,
+      expiresAt: now.plus({ hours: uploadConfig.temporaryTtlHours }),
+      deletedAt: null,
+    })
+
+    return {
+      attachmentId: attachment.id,
+      provider: 'qiniu' as const,
+      objectKey: authorization.objectKey,
+      uploadUrl: authorization.uploadUrl,
+      providerToken: authorization.token,
+      expiresIn: authorization.expiresIn,
+    }
+  }
+
+  static async completeDirect(user: AdminUser, attachmentId: number, uploadToken: string) {
+    const attachment = await Attachment.findOrFail(attachmentId)
+    if (!user.isSuperAdmin && attachment.uploaderId !== user.id) {
+      throw new UploadException('Cannot complete this upload', 'E_ATTACHMENT_FORBIDDEN', 403)
+    }
+    if (attachment.uploadMode !== 'direct' || attachment.storageDisk !== 'qiniu') {
+      throw new UploadException(
+        'Attachment is not a Qiniu direct upload',
+        'E_UPLOAD_DIRECT_INVALID'
+      )
+    }
+    if (attachment.uploadToken !== uploadToken) {
+      throw new UploadException('Upload token does not match', 'E_UPLOAD_TOKEN_MISMATCH', 403)
+    }
+    if (attachment.isComplete) return attachment
+    if (!attachment.objectKey) {
+      throw new UploadException('Upload object key is missing', 'E_UPLOAD_OBJECT_KEY_MISSING')
+    }
+
+    try {
+      const stored = await StorageManager.direct('qiniu').inspect(attachment.objectKey)
+      if (stored.size !== Number(attachment.size)) {
+        await StorageManager.disk('qiniu').delete(attachment.objectKey)
+        throw new UploadException('Uploaded file size does not match', 'E_UPLOAD_SIZE_MISMATCH')
+      }
+      FileInspectorService.classify(attachment.originalName, stored.mimeType)
+      const now = DateTime.now()
+      attachment.merge({
+        storagePath: stored.storagePath,
+        objectKey: stored.objectKey,
+        url: stored.url,
+        mimeType: stored.mimeType,
+        hash: stored.hash,
+        status: 'temporary',
+        isComplete: true,
+        errorMessage: null,
+        lastUsedAt: now,
+        expiresAt: now.plus({ hours: uploadConfig.temporaryTtlHours }),
+      })
+      await attachment.save()
+      logger.info(
+        {
+          operation: 'qiniu_direct_upload_completed',
+          userId: user.id,
+          attachmentId: attachment.id,
+          storagePath: stored.storagePath,
+        },
+        'Qiniu direct upload completed'
+      )
+      return attachment
+    } catch (error) {
+      attachment.status = 'failed'
+      attachment.errorMessage = error instanceof Error ? error.message : 'Direct upload failed'
+      await attachment.save()
+      throw error
+    }
+  }
+
   static async createNormal(
     user: AdminUser,
     input: FinalizeInput & {
@@ -96,7 +221,7 @@ export default class AttachmentService {
 
     const now = DateTime.now()
     const objectKey = this.objectKey(inspected.fileType, attachment.uuid, inspected.extension, now)
-    const stored = await StorageManager.disk(attachment.storageDisk as 'local' | 'oss' | 's3').put(
+    const stored = await StorageManager.disk(attachment.storageDisk as StorageDisk).put(
       input.sourcePath,
       objectKey
     )
@@ -324,9 +449,7 @@ export default class AttachmentService {
     }
 
     if (attachment.objectKey) {
-      await StorageManager.disk(attachment.storageDisk as 'local' | 'oss' | 's3').delete(
-        attachment.objectKey
-      )
+      await StorageManager.disk(attachment.storageDisk as StorageDisk).delete(attachment.objectKey)
     }
 
     attachment.status = 'deleted'
@@ -364,8 +487,10 @@ export default class AttachmentService {
   }
 
   static serialize(attachment: Attachment, referenceCount = 0) {
-    const contentUrl =
+    const protectedContentUrl =
       attachment.status === 'deleted' ? null : `/api/v1/admin/attachments/${attachment.id}/content`
+    const contentUrl =
+      attachment.status === 'deleted' ? null : attachment.url || protectedContentUrl
     return {
       id: attachment.id,
       uuid: attachment.uuid,
