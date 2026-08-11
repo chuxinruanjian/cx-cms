@@ -8,6 +8,7 @@ import type {
 import {
   getUploadConfig,
   requestJson,
+  uploadExternalWithProgress,
   uploadWithProgress,
 } from '@/services/upload';
 import { resetUploadConfigCache, uploadFile } from './uploadTaskManager';
@@ -15,6 +16,7 @@ import { resetUploadConfigCache, uploadFile } from './uploadTaskManager';
 vi.mock('@/services/upload', () => ({
   getUploadConfig: vi.fn(),
   requestJson: vi.fn(),
+  uploadExternalWithProgress: vi.fn(),
   uploadWithProgress: vi.fn(),
 }));
 
@@ -36,6 +38,7 @@ const config: UploadConfig = {
   temporaryTtlHours: 24,
   defaultDisk: 'local',
   directUploadEnabled: false,
+  directUploadProvider: null,
 };
 
 const attachment = {
@@ -127,6 +130,50 @@ describe('uploadTaskManager', () => {
     expect(requestJson).toHaveBeenLastCalledWith(
       '/api/v1/admin/uploads/resume-id/complete',
       expect.objectContaining({ method: 'POST' }),
+    );
+  });
+
+  it('uploads directly to Qiniu and completes through the API', async () => {
+    const file = new File(['1234'], 'direct.png', { type: 'image/png' });
+    vi.mocked(getUploadConfig).mockResolvedValue({
+      ...config,
+      defaultDisk: 'qiniu',
+      directUploadEnabled: true,
+      directUploadProvider: 'qiniu',
+    });
+    vi.mocked(requestJson)
+      .mockResolvedValueOnce({
+        attachmentId: 8,
+        provider: 'qiniu',
+        objectKey: 'images/2026/08/example.png',
+        uploadUrl: 'https://upload.example.test',
+        providerToken: 'provider-token',
+        expiresIn: 600,
+      })
+      .mockResolvedValueOnce(attachment);
+    vi.mocked(uploadExternalWithProgress).mockResolvedValue({});
+    const update = vi.fn();
+
+    await expect(
+      uploadFile(
+        task(file),
+        { signal: new AbortController().signal, update },
+        'qiniu-direct',
+      ),
+    ).resolves.toBe(attachment);
+
+    expect(uploadExternalWithProgress).toHaveBeenCalledWith(
+      'https://upload.example.test',
+      expect.any(FormData),
+      expect.any(AbortSignal),
+      expect.any(Function),
+    );
+    expect(requestJson).toHaveBeenLastCalledWith(
+      '/api/v1/admin/uploads/direct/8/complete',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ uploadToken: 'upload_token' }),
+      }),
     );
   });
 });

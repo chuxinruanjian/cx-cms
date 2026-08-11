@@ -368,6 +368,12 @@ export default [
         component: './uploads/demo',
       },
       {
+        path: '/uploads/qiniu-direct',
+        name: 'qiniu-direct',
+        access: 'canUploadFiles',
+        component: './uploads/demo',
+      },
+      {
         path: '/uploads/tasks',
         name: 'tasks',
         access: 'canViewFiles',

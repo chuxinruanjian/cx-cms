@@ -31,6 +31,7 @@ export interface UploaderOptions {
   maxCount?: number;
   multiple?: boolean;
   sortable?: boolean;
+  uploadMode?: 'auto' | 'qiniu-direct';
   previewShape?: 'circle' | 'square';
   value?: Attachment[];
   onChange?: (attachments: Attachment[]) => void;

@@ -114,6 +114,12 @@ router
           .post('uploads/init', [UploadsController, 'initialize'])
           .use(middleware.adminRbac({ permissions: ['admin.attachments.upload'] }))
         router
+          .post('uploads/direct/init', [UploadsController, 'initializeDirect'])
+          .use(middleware.adminRbac({ permissions: ['admin.attachments.upload'] }))
+        router
+          .post('uploads/direct/:attachmentId/complete', [UploadsController, 'completeDirect'])
+          .use(middleware.adminRbac({ permissions: ['admin.attachments.upload'] }))
+        router
           .post('uploads/:uploadId/chunks', [UploadsController, 'storeChunk'])
           .use(middleware.adminRbac({ permissions: ['admin.attachments.upload'] }))
         router

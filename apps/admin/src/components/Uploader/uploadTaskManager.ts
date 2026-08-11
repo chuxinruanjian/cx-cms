@@ -1,12 +1,14 @@
 import type {
   Attachment,
   AttachmentFileType,
+  DirectUploadAuthorization,
   UploadConfig,
   UploadSession,
 } from '@/services/upload';
 import {
   getUploadConfig,
   requestJson,
+  uploadExternalWithProgress,
   uploadWithProgress,
 } from '@/services/upload';
 import type { UploadTask } from './types';
@@ -252,11 +254,64 @@ const multipartUpload = async (
   return attachment;
 };
 
+const qiniuDirectUpload = async (
+  task: UploadTask,
+  config: UploadConfig,
+  runtime: UploadRuntime,
+): Promise<Attachment> => {
+  if (!config.directUploadEnabled || config.directUploadProvider !== 'qiniu') {
+    throw new Error('Qiniu direct upload is not enabled');
+  }
+  if (task.attachmentId && !task.uploadId) {
+    await requestJson(`${api}/attachments/${task.attachmentId}`, {
+      method: 'DELETE',
+      signal: runtime.signal,
+    }).catch(() => undefined);
+  }
+  const authorization = await requestJson<DirectUploadAuthorization>(
+    `${api}/uploads/direct/init`,
+    {
+      method: 'POST',
+      signal: runtime.signal,
+      body: JSON.stringify({
+        originalName: task.file.name,
+        mimeType: task.file.type || 'application/octet-stream',
+        fileSize: task.file.size,
+        uploadToken: task.uploadToken,
+      }),
+    },
+  );
+  runtime.update({ attachmentId: authorization.attachmentId });
+
+  const data = new FormData();
+  data.append('token', authorization.providerToken);
+  data.append('key', authorization.objectKey);
+  data.append('file', task.file);
+  await uploadExternalWithProgress(
+    authorization.uploadUrl,
+    data,
+    runtime.signal,
+    (progress) => runtime.update({ progress: Math.min(progress, 99) }),
+  );
+  return requestJson<Attachment>(
+    `${api}/uploads/direct/${authorization.attachmentId}/complete`,
+    {
+      method: 'POST',
+      signal: runtime.signal,
+      body: JSON.stringify({ uploadToken: task.uploadToken }),
+    },
+  );
+};
+
 export const uploadFile = async (
   task: UploadTask,
   runtime: UploadRuntime,
+  mode: 'auto' | 'qiniu-direct' = 'auto',
 ): Promise<Attachment> => {
   const config = await loadUploadConfig();
+  if (mode === 'qiniu-direct') {
+    return qiniuDirectUpload(task, config, runtime);
+  }
   if (task.file.size <= config.normalThreshold) {
     return normalUpload(task, runtime);
   }

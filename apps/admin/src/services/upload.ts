@@ -22,7 +22,7 @@ export interface Attachment {
   uuid: string;
   originalName: string;
   fileName: string;
-  storageDisk: 'local' | 'oss' | 's3';
+  storageDisk: 'local' | 'qiniu' | 'oss' | 's3';
   extension: string;
   mimeType: string;
   fileType: AttachmentFileType;
@@ -65,8 +65,18 @@ export interface UploadConfig {
   maxRetries: number;
   maxCount: number;
   temporaryTtlHours: number;
-  defaultDisk: 'local' | 'oss' | 's3';
+  defaultDisk: 'local' | 'qiniu' | 'oss' | 's3';
   directUploadEnabled: boolean;
+  directUploadProvider: 'qiniu' | null;
+}
+
+export interface DirectUploadAuthorization {
+  attachmentId: number;
+  provider: 'qiniu';
+  objectKey: string;
+  uploadUrl: string;
+  providerToken: string;
+  expiresIn: number;
 }
 
 export interface UploadSession {
@@ -209,6 +219,45 @@ export const uploadWithProgress = <T>(
     };
     xhr.onerror = () => reject(new Error('Network error'));
     xhr.onabort = () => reject(new DOMException('Upload canceled', 'AbortError'));
+    signal.addEventListener('abort', () => xhr.abort(), { once: true });
+    xhr.send(formData);
+  });
+
+export const uploadExternalWithProgress = <T>(
+  path: string,
+  formData: FormData,
+  signal: AbortSignal,
+  onProgress: (percent: number) => void,
+) =>
+  new Promise<T>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', path);
+    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        onProgress(Math.round((event.loaded / event.total) * 100));
+      }
+    };
+    xhr.onload = () => {
+      let result: { error?: string; message?: string } = {};
+      try {
+        result = JSON.parse(xhr.responseText || '{}');
+      } catch {
+        result = {};
+      }
+      if (xhr.status >= 200 && xhr.status < 300) resolve(result as T);
+      else
+        reject(
+          new Error(
+            result.error ||
+              result.message ||
+              `Cloud upload failed (${xhr.status})`,
+          ),
+        );
+    };
+    xhr.onerror = () => reject(new Error('Cloud upload network error'));
+    xhr.onabort = () =>
+      reject(new DOMException('Upload canceled', 'AbortError'));
     signal.addEventListener('abort', () => xhr.abort(), { once: true });
     xhr.send(formData);
   });

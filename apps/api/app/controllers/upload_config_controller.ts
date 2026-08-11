@@ -16,6 +16,7 @@ export default class UploadConfigController {
       defaultDisk: uploadConfig.defaultDisk,
       imageQuality: uploadConfig.imageQuality,
       directUploadEnabled: uploadConfig.directUploadEnabled,
+      directUploadProvider: uploadConfig.directUploadEnabled ? 'qiniu' : null,
       deduplicate: uploadConfig.deduplicate,
       virusScanEnabled: uploadConfig.virusScanEnabled,
       contentReviewEnabled: uploadConfig.contentReviewEnabled,

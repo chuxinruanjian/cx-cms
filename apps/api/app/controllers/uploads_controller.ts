@@ -4,6 +4,7 @@ import UploadSession from '#models/upload_session'
 import AttachmentService from '#services/upload/attachment_service'
 import UploadSessionService from '#services/upload/upload_session_service'
 import {
+  completeDirectUploadValidator,
   initializeUploadValidator,
   listUploadSessionsValidator,
   normalUploadValidator,
@@ -70,6 +71,23 @@ export default class UploadsController {
     const user = auth.getUserOrFail()
     const payload = await request.validateUsing(initializeUploadValidator)
     return response.created(await UploadSessionService.initialize(user, payload))
+  }
+
+  async initializeDirect({ auth, request, response }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const payload = await request.validateUsing(initializeUploadValidator)
+    return response.created(await AttachmentService.initializeDirect(user, payload))
+  }
+
+  async completeDirect({ auth, params, request }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const { uploadToken } = await request.validateUsing(completeDirectUploadValidator)
+    const attachment = await AttachmentService.completeDirect(
+      user,
+      params.attachmentId,
+      uploadToken
+    )
+    return AttachmentService.serialize(attachment)
   }
 
   async storeChunk({ auth, params, request }: HttpContext) {

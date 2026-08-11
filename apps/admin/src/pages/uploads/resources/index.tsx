@@ -52,7 +52,7 @@ export default () => {
       title: 'Storage',
       dataIndex: 'storageDisk',
       valueType: 'select',
-      valueEnum: { local: 'Local', oss: 'OSS', s3: 'S3' },
+      valueEnum: { local: 'Local', qiniu: 'Qiniu Kodo', oss: 'OSS', s3: 'S3' },
     },
     {
       title: 'Status',

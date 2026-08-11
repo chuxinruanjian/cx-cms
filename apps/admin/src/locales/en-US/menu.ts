@@ -60,6 +60,7 @@ export default {
   'menu.uploads.video': 'Video',
   'menu.uploads.files': 'Files',
   'menu.uploads.multipart': 'Multipart',
+  'menu.uploads.qiniu-direct': 'Qiniu Direct Upload',
   'menu.uploads.tasks': 'Upload Tasks',
   'menu.uploads.temporary': 'Temporary Files',
   'menu.uploads.resources': 'Resources',

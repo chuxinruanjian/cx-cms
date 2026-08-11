@@ -44,10 +44,14 @@ export const useUploader = (options: UploaderOptions = {}) => {
       controllers.current.set(task.id, controller);
       updateTask(task.id, { status: 'uploading', error: undefined });
       try {
-        const attachment = await uploadFile(task, {
-          signal: controller.signal,
-          update: (patch) => updateTask(task.id, patch),
-        });
+        const attachment = await uploadFile(
+          task,
+          {
+            signal: controller.signal,
+            update: (patch) => updateTask(task.id, patch),
+          },
+          options.uploadMode,
+        );
         updateTask(task.id, {
           status: 'success',
           progress: 100,
@@ -133,6 +137,9 @@ export const useUploader = (options: UploaderOptions = {}) => {
     const task = tasks.find((item) => item.id === id);
     controllers.current.get(id)?.abort();
     if (task?.uploadId) await abortUploadSession(task.uploadId);
+    if (task?.attachmentId && !task.uploadId) {
+      await deleteAttachment(task.attachmentId);
+    }
     updateTask(id, { status: 'canceled' });
   };
 

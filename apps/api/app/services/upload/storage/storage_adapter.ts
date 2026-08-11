@@ -8,6 +8,19 @@ export interface StoredObject {
   url: string | null
 }
 
+export interface DirectUploadAuthorization {
+  uploadUrl: string
+  token: string
+  objectKey: string
+  expiresIn: number
+}
+
+export interface StoredObjectMetadata extends StoredObject {
+  size: number
+  mimeType: string
+  hash: string
+}
+
 export interface StorageAdapter {
   readonly disk: StorageDisk
   put(sourcePath: string, objectKey: string): Promise<StoredObject>
@@ -15,4 +28,6 @@ export interface StorageAdapter {
   exists(objectKey: string): Promise<boolean>
   read(objectKey: string): Promise<Readable>
   abortMultipart(storageUploadId: string): Promise<void>
+  createDirectUpload?(objectKey: string, size: number, mimeType: string): DirectUploadAuthorization
+  inspect?(objectKey: string): Promise<StoredObjectMetadata>
 }

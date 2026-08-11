@@ -3,8 +3,18 @@ import app from '@adonisjs/core/services/app'
 
 const mb = 1024 * 1024
 
+const qiniu = {
+  accessKey: env.get('QINIU_ACCESS_KEY'),
+  secretKey: env.get('QINIU_SECRET_KEY')?.release(),
+  bucket: env.get('QINIU_BUCKET'),
+  domain: env.get('QINIU_DOMAIN')?.replace(/\/+$/, ''),
+  uploadUrl: env.get('QINIU_UPLOAD_URL', 'https://upload.qiniup.com'),
+  uploadTokenTtlSeconds: env.get('QINIU_UPLOAD_TOKEN_TTL_SECONDS', 600),
+}
+
 const uploadConfig = {
-  defaultDisk: env.get('UPLOAD_DISK', 'local'),
+  // Automated tests must never write to a configured external storage account.
+  defaultDisk: app.inTest ? ('local' as const) : env.get('UPLOAD_DISK', 'local'),
   root: app.makePath(env.get('UPLOAD_DIR', '../../storage/uploads')),
   normalMaxBytes: env.get('UPLOAD_NORMAL_MAX_MB', 20) * mb,
   maxBytes: {
@@ -26,6 +36,7 @@ const uploadConfig = {
   virusScanEnabled: env.get('UPLOAD_VIRUS_SCAN_ENABLED', false),
   contentReviewEnabled: env.get('UPLOAD_CONTENT_REVIEW_ENABLED', false),
   imageQuality: env.get('UPLOAD_IMAGE_QUALITY', 85),
+  qiniu,
   allowedExtensions: [
     'jpg',
     'jpeg',

@@ -18,4 +18,8 @@ export default {
     '组件统一处理校验、进度、普通上传和大文件分片；业务页面只维护附件值。',
   'uploader.demo.multipartHint':
     '上传阈值和分片大小由服务端配置。请选择超过阈值的文件测试分片上传。',
+  'uploader.demo.qiniuDirectHint':
+    '浏览器使用 API 签发的短期凭证直接上传七牛云。测试前请将七牛设为当前存储并开启直传。',
+  'uploader.demo.qiniuDirectReady': '七牛云直传已就绪',
+  'uploader.demo.qiniuDirectDisabled': '七牛云直传尚未启用',
 };
