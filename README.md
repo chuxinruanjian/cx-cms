@@ -348,6 +348,18 @@ Token 中，每个受保护请求都从数据库实时读取，因此修改角�
 
 ### 阿里云短信登录
 
+后台手机号功能入口由 `apps/admin/src/config/features.ts` 统一控制：
+
+```ts
+export const adminFeatures = {
+  mobileEnabled: true,
+}
+```
+
+设置为 `false` 并重新构建后台后，会同时隐藏短信登录、忘记密码，以及个人安全
+设置中的密保手机绑定/换绑入口。该配置仅控制管理后台界面，不会删除已有手机号
+数据，也不会停用现有 API。
+
 在阿里云短信服务中准备短信签名和验证码模板，模板变量必须为 `code`。然后在
 `apps/api/.env` 中配置：
 

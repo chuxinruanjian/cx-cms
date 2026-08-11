@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { adminFeatures } from '@/config/features';
 import * as service from '../service';
 import SecurityView from './security';
 
@@ -143,7 +144,17 @@ const renderView = () => {
 describe('account security settings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    adminFeatures.mobileEnabled = true;
     vi.mocked(service.queryCurrent).mockResolvedValue({ data: currentUser });
+  });
+
+  it('hides security phone settings when mobile features are disabled', async () => {
+    adminFeatures.mobileEnabled = false;
+    const view = renderView();
+
+    await view.findByText('Configured. Update your password regularly');
+    expect(view.queryByText('Security Phone')).toBeNull();
+    expect(view.queryByText('No security phone is bound')).toBeNull();
   });
 
   it('shows the shared bind template when no mobile is configured', async () => {

@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useIntl, useModel } from '@umijs/max';
 import { App, Button, Form, List } from 'antd';
 import React, { useState } from 'react';
+import { adminFeatures } from '@/config/features';
 import type { AdminAuthUser } from '@/types/admin';
 import {
   changeCurrentPassword,
@@ -447,7 +448,7 @@ const SecurityView: React.FC = () => {
         </Button>,
       ],
     },
-  ];
+  ].filter((item) => adminFeatures.mobileEnabled || item.key !== 'mobile');
 
   return (
     <>
@@ -462,7 +463,7 @@ const SecurityView: React.FC = () => {
         )}
       />
       {passwordModal}
-      {mobileModal}
+      {adminFeatures.mobileEnabled && mobileModal}
     </>
   );
 };

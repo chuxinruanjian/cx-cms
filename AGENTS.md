@@ -136,6 +136,9 @@ changes, run typecheck, tests, and builds for every affected workspace.
 - Login title, slogans, and footer copyright come from `apps/admin/.env`; use
   `apps/admin/.env.example` as the documented contract and never store them in the
   database. The logo is fixed at `apps/admin/public/logo.png`.
+- Management mobile entry points are controlled by
+  `apps/admin/src/config/features.ts`. When `mobileEnabled` is false, hide SMS
+  login, password recovery, and security-mobile binding/replacement UI together.
 - Parse, calculate, and display frontend business time through
   `apps/admin/src/utils/dayjs.ts`. Do not import Day.js directly in application
   code. Keep `APP_TIMEZONE` aligned with the API `TZ` setting.

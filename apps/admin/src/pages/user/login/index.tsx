@@ -20,6 +20,7 @@ import { createStyles } from 'antd-style';
 import React, { startTransition, useState } from 'react';
 import { Footer } from '@/components';
 import { appSettings, getAppLocale } from '@/config/appSettings';
+import { adminFeatures } from '@/config/features';
 import {
   loginAdmin,
   loginAdminWithSms,
@@ -93,6 +94,8 @@ const useStyles = createStyles(({ token }) => ({
       justifyContent: 'center',
     },
     '& .ant-pro-form-login-title': {
+      fontSize: 32,
+      insetBlockStart: 'auto',
       textAlign: 'center',
     },
   },
@@ -139,6 +142,7 @@ const Login: React.FC = () => {
   const { message } = App.useApp();
   const intl = useIntl();
   const locale = getAppLocale(getLocale());
+  const mobileEnabled = adminFeatures.mobileEnabled;
 
   const fetchUserInfo = async () => {
     const userInfo = await initialState?.fetchUserInfo?.();
@@ -226,8 +230,8 @@ const Login: React.FC = () => {
                 src={appSettings.logo}
                 style={{
                   display: 'block',
-                  width: 44,
-                  height: 44,
+                  width: 50,
+                  height: 50,
                   objectFit: 'contain',
                 }}
               />
@@ -250,13 +254,17 @@ const Login: React.FC = () => {
                     defaultMessage: '账号登录',
                   }),
                 },
-                {
-                  key: 'sms',
-                  label: intl.formatMessage({
-                    id: 'pages.login.smsLogin.tab',
-                    defaultMessage: '短信登录',
-                  }),
-                },
+                ...(mobileEnabled
+                  ? [
+                      {
+                        key: 'sms',
+                        label: intl.formatMessage({
+                          id: 'pages.login.smsLogin.tab',
+                          defaultMessage: '短信登录',
+                        }),
+                      },
+                    ]
+                  : []),
               ]}
               onChange={(key) => {
                 setLoginType(key as 'account' | 'sms');
@@ -277,7 +285,7 @@ const Login: React.FC = () => {
                 })}
               />
             )}
-            {loginType === 'account' ? (
+            {loginType === 'account' || !mobileEnabled ? (
               <>
                 <ProFormText
                   name="username"
@@ -407,7 +415,7 @@ const Login: React.FC = () => {
                   defaultMessage="记住登录状态"
                 />
               </ProFormCheckbox>
-              {loginType === 'account' && (
+              {mobileEnabled && loginType === 'account' && (
                 <Button
                   type="link"
                   style={{ paddingInline: 0 }}
@@ -425,7 +433,7 @@ const Login: React.FC = () => {
       </div>
       <ModalForm<PasswordResetFormValues>
         form={passwordResetForm}
-        open={passwordResetOpen}
+        open={mobileEnabled && passwordResetOpen}
         title={intl.formatMessage({
           id: 'pages.login.reset.title',
           defaultMessage: '找回账户密码',
