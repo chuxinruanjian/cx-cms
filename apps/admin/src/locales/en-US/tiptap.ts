@@ -64,6 +64,7 @@ export default {
   'tiptap.textAlign.center': 'Align center',
   'tiptap.textAlign.right': 'Align right',
   'tiptap.textAlign.justify': 'Justify',
+  'tiptap.firstLineIndent.label': 'First-line indent',
   'tiptap.image.insert': 'Insert image',
   'tiptap.imageUpload.fileTooLarge': 'File size cannot exceed {maxSize} MB',
   'tiptap.imageUpload.handlerMissing': 'Upload handler is not configured',

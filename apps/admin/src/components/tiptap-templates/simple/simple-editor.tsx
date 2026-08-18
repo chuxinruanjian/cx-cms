@@ -36,6 +36,7 @@ import '@/components/tiptap-node/list-node/list-node.scss';
 import '@/components/tiptap-node/paragraph-node/paragraph-node.scss';
 
 import { useTiptapLocale } from '@/components/TiptapEditor/locale';
+import { FirstLineIndent } from '@/components/tiptap-extension/first-line-indent-extension';
 // --- Icons ---
 import { ArrowLeftIcon } from '@/components/tiptap-icons/arrow-left-icon';
 import { HighlighterIcon } from '@/components/tiptap-icons/highlighter-icon';
@@ -50,6 +51,7 @@ import {
   ColorHighlightPopoverButton,
   ColorHighlightPopoverContent,
 } from '@/components/tiptap-ui/color-highlight-popover';
+import { FirstLineIndentButton } from '@/components/tiptap-ui/first-line-indent-button';
 import {
   FontSizeButton,
   FontSizeDropdownMenu,
@@ -156,6 +158,7 @@ const MainToolbarContent = ({
         <TextAlignButton align="center" />
         <TextAlignButton align="right" />
         <TextAlignButton align="justify" />
+        <FirstLineIndentButton />
       </ToolbarGroup>
 
       <ToolbarSeparator />
@@ -264,6 +267,7 @@ export function SimpleEditor({
       }),
       HorizontalRule,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      FirstLineIndent,
       TaskList,
       TaskItem.configure({ nested: true }),
       Highlight.configure({ multicolor: true }),

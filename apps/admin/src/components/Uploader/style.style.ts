@@ -3,6 +3,20 @@ import { createStyles } from 'antd-style';
 const useStyles = createStyles(({ token }) => ({
   root: {
     width: '100%',
+    '& .ant-upload-list-picture-card .ant-upload-list-item-thumbnail': {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+    },
+    '& .ant-upload-list-picture-card .ant-upload-list-item-thumbnail img': {
+      width: '100%',
+      height: '100%',
+      maxWidth: '100%',
+      maxHeight: '100%',
+      objectFit: 'contain',
+      objectPosition: 'center',
+    },
   },
   uploadButton: {
     display: 'flex',
@@ -32,7 +46,10 @@ const useStyles = createStyles(({ token }) => ({
     display: 'block',
     width: '100%',
     height: '100%',
-    objectFit: 'cover',
+    maxWidth: '100%',
+    maxHeight: '100%',
+    objectFit: 'contain',
+    objectPosition: 'center',
   },
   avatarPlaceholder: {
     display: 'flex',
@@ -70,6 +87,9 @@ const useStyles = createStyles(({ token }) => ({
     marginTop: token.marginSM,
   },
   sortableItem: {
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden',
     cursor: 'move',
   },
 }));
