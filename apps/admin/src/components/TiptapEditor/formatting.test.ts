@@ -2,6 +2,7 @@ import { Editor } from '@tiptap/core';
 import { Image } from '@tiptap/extension-image';
 import { Color, FontSize, TextStyle } from '@tiptap/extension-text-style';
 import { StarterKit } from '@tiptap/starter-kit';
+import { FirstLineIndent } from '@/components/tiptap-extension/first-line-indent-extension';
 
 const createFormattingEditor = (content = '<p>Styled text</p>') =>
   new Editor({
@@ -71,6 +72,30 @@ describe('Tiptap text formatting', () => {
       height: 180,
       width: 320,
     });
+
+    restoredEditor.destroy();
+    editor.destroy();
+  });
+
+  it('toggles and round-trips first-line indentation for paragraphs', () => {
+    const extensions = [StarterKit, FirstLineIndent];
+    const editor = new Editor({
+      content: '<p>First paragraph</p><p>Second paragraph</p>',
+      extensions,
+    });
+
+    editor.commands.setTextSelection(3);
+    expect(editor.commands.toggleFirstLineIndent()).toBe(true);
+    expect(editor.getHTML()).toContain('text-indent: 2em');
+
+    const restoredEditor = new Editor({
+      content: editor.getHTML(),
+      extensions,
+    });
+    restoredEditor.commands.setTextSelection(3);
+    expect(restoredEditor.isActive({ firstLineIndent: true })).toBe(true);
+    expect(restoredEditor.commands.toggleFirstLineIndent()).toBe(true);
+    expect(restoredEditor.getHTML()).not.toContain('text-indent');
 
     restoredEditor.destroy();
     editor.destroy();

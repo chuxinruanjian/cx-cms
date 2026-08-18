@@ -64,6 +64,7 @@ export default {
   'tiptap.textAlign.center': '居中对齐',
   'tiptap.textAlign.right': '右对齐',
   'tiptap.textAlign.justify': '两端对齐',
+  'tiptap.firstLineIndent.label': '首行缩进',
   'tiptap.image.insert': '插入图片',
   'tiptap.imageUpload.fileTooLarge': '文件大小不能超过 {maxSize} MB',
   'tiptap.imageUpload.handlerMissing': '未配置上传函数',

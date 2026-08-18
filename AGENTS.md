@@ -116,8 +116,8 @@ changes, run typecheck, tests, and builds for every affected workspace.
   deletion state. Multi-image fields use the shared `picture-card` photo wall;
   avatar fields use `AvatarUploader` and keep its mandatory 1:1 crop flow.
 - Rich-text HTML sanitizers and renderers must preserve Tiptap `span`
-  `color`/`font-size` styles and image `width`/`height` attributes. Removing
-  them breaks font formatting and resized-image persistence.
+  `color`/`font-size` styles, paragraph `text-indent` styles, and image
+  `width`/`height` attributes. Removing them breaks formatting persistence.
 - Rich-text fields use `apps/admin/src/components/TiptapEditor`. The
   `demoImageUpload` data-URL adapter is only for the static `/ui-standard/create`
   blueprint. Business rich-text images must integrate through the shared upload

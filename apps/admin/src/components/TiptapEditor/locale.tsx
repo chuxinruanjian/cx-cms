@@ -262,6 +262,10 @@ export const tiptapLocaleMessages = {
     id: 'tiptap.textAlign.justify',
     defaultMessage: 'Justify',
   },
+  firstLineIndent: {
+    id: 'tiptap.firstLineIndent.label',
+    defaultMessage: 'First-line indent',
+  },
   insertImage: {
     id: 'tiptap.image.insert',
     defaultMessage: 'Insert image',
