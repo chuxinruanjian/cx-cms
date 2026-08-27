@@ -9,8 +9,7 @@ export const controllers = {
   AdminRoles: () => import('#controllers/admin_roles_controller'),
   AdminSecurity: () => import('#controllers/admin_security_controller'),
   AdminUsers: () => import('#controllers/admin_users_controller'),
-  Attachments: () => import('#controllers/attachments_controller'),
-  UploadCleanup: () => import('#controllers/upload_cleanup_controller'),
   UploadConfig: () => import('#controllers/upload_config_controller'),
+  UploadedFiles: () => import('#controllers/uploaded_files_controller'),
   Uploads: () => import('#controllers/uploads_controller'),
 }

@@ -8,11 +8,8 @@ import type {
 } from '@/types/admin';
 import {
   clearAdminToken,
-  getAdminToken,
   saveAdminToken,
 } from '@/utils/adminAuth';
-
-const avatarObjectUrls = new Map<string, string>();
 
 const persistLogin = (
   result: AdminLoginResponse,
@@ -20,26 +17,6 @@ const persistLogin = (
 ) => {
   saveAdminToken(result.token.value, remember);
   return result;
-};
-
-const resolvePrivateAvatar = async (user: AdminAuthUser) => {
-  const source = user.avatar;
-  if (!source?.startsWith('/api/v1/admin/attachments/')) return user;
-  const cached = avatarObjectUrls.get(source);
-  if (cached) return { ...user, avatar: cached };
-
-  try {
-    const token = getAdminToken();
-    const response = await fetch(source, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-    if (!response.ok) return { ...user, avatar: null };
-    const objectUrl = URL.createObjectURL(await response.blob());
-    avatarObjectUrls.set(source, objectUrl);
-    return { ...user, avatar: objectUrl };
-  } catch {
-    return { ...user, avatar: null };
-  }
 };
 
 export const loginAdmin = async (params: AdminLoginParams) => {
@@ -111,18 +88,17 @@ export const resetAdminPassword = async (
 export const getCurrentAdmin = async (options?: {
   skipErrorHandler?: boolean;
 }) => {
-  const user = await request<AdminAuthUser>('/api/v1/admin/auth/me', {
+  return request<AdminAuthUser>('/api/v1/admin/auth/me', {
     method: 'GET',
     ...options,
   });
-  return resolvePrivateAvatar(user);
 };
 
 export const updateCurrentAdmin = async (data: {
   fullName: string;
   email: string;
   profile?: string | null;
-  avatarAttachmentId?: number | null;
+  avatar?: string | null;
 }) => {
   await request<AdminAuthUser>('/api/v1/admin/auth/me', {
     method: 'PATCH',

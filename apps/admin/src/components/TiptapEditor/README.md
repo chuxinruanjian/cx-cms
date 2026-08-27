@@ -31,7 +31,5 @@ Do not use it for business data.
 
 Business image uploads must be implemented inside the shared Uploader
 architecture. The persisted HTML needs a durable URL that a normal `<img>` can
-load, together with attachment identity for binding and cleanup. The current
-`/api/v1/admin/attachments/:id/content` route requires a bearer header and is
-therefore not a valid persisted image `src`; blob URLs and Data URLs are also
-not valid production storage.
+load without a bearer header. Save that URL directly; attachment IDs, blob URLs,
+and Data URLs are not valid production storage.

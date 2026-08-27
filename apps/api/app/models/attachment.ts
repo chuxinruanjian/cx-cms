@@ -1,5 +1,4 @@
 import { AttachmentSchema } from '#database/schema'
-import AttachmentRelation from '#models/attachment_relation'
 import AdminUser from '#models/admin_user'
 import UploadSession from '#models/upload_session'
 import { belongsTo, hasMany, hasOne } from '@adonisjs/lucid/orm'
@@ -14,9 +13,6 @@ export default class Attachment extends AttachmentSchema {
 
   @hasMany(() => Attachment, { foreignKey: 'parentAttachmentId' })
   declare derivatives: HasMany<typeof Attachment>
-
-  @hasMany(() => AttachmentRelation, { foreignKey: 'attachmentId' })
-  declare relations: HasMany<typeof AttachmentRelation>
 
   @hasOne(() => UploadSession, { foreignKey: 'attachmentId' })
   declare uploadSession: HasOne<typeof UploadSession>

@@ -8,7 +8,6 @@ import { useIntl, useModel } from '@umijs/max';
 import { App } from 'antd';
 import React, { useState } from 'react';
 import { AvatarUploader } from '@/components/Uploader';
-import type { Attachment } from '@/services/upload';
 import { getAvatarText } from '@/utils/avatar';
 import { queryCurrent, updateCurrent } from '../service';
 import useStyles from './index.style';
@@ -25,7 +24,7 @@ const BaseView: React.FC = () => {
   const queryClient = useQueryClient();
   const { message } = App.useApp();
   const { styles } = useStyles();
-  const [avatarAttachments, setAvatarAttachments] = useState<Attachment[]>([]);
+  const [avatar, setAvatar] = useState<string | null>();
   const t = (id: string, defaultMessage: string) =>
     intl.formatMessage({ id, defaultMessage });
   const { data: currentUser, isLoading: loading } = useQuery({
@@ -44,15 +43,15 @@ const BaseView: React.FC = () => {
         <ProForm<BasicSettingsValues>
           layout="vertical"
           onFinish={async (values) => {
-            const avatarAttachmentId = avatarAttachments[0]?.id;
             const updatedUser = await updateCurrent({
               fullName: values.name,
               email: values.email,
               profile: values.profile?.trim() || null,
-              ...(avatarAttachmentId ? { avatarAttachmentId } : {}),
+              avatar:
+                avatar === undefined ? currentUser?.avatar || null : avatar,
             });
             queryClient.setQueryData(['current-user'], updatedUser);
-            setAvatarAttachments([]);
+            setAvatar(updatedUser.avatar);
             await setInitialState((state) => ({
               ...state,
               currentUser: updatedUser,
@@ -133,13 +132,10 @@ const BaseView: React.FC = () => {
         <div className={styles.avatar}>
           <AvatarUploader
             fallbackText={getAvatarText(displayName)}
-            initialPreviewUrl={
-              avatarAttachments.length
-                ? undefined
-                : currentUser?.avatar || undefined
+            value={avatar === undefined ? currentUser?.avatar : avatar}
+            onChange={(value) =>
+              setAvatar(typeof value === 'string' ? value : null)
             }
-            value={avatarAttachments}
-            onChange={setAvatarAttachments}
             title={t('app.settings.basic.change-avatar', 'Change avatar')}
           />
         </div>

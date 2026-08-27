@@ -1,5 +1,6 @@
 import { useIntl } from '@umijs/max';
 import { Alert, Card, Space, Typography } from 'antd';
+import type { ComponentProps } from 'react';
 import { useEffect, useState } from 'react';
 import { AdminPage } from '@/components';
 import {
@@ -15,35 +16,51 @@ import { getUploadConfig } from '@/services/upload';
 const demos = {
   avatar: {
     title: 'Avatar',
-    component: <AvatarUploader />,
+    render: (props: ComponentProps<typeof AvatarUploader>) => (
+      <AvatarUploader {...props} />
+    ),
   },
   square: {
     title: 'Square Image',
-    component: <SquareImageUploader />,
+    render: (props: ComponentProps<typeof SquareImageUploader>) => (
+      <SquareImageUploader {...props} />
+    ),
   },
   cover: {
     title: 'Cover Image',
-    component: <CoverImageUploader />,
+    render: (props: ComponentProps<typeof CoverImageUploader>) => (
+      <CoverImageUploader {...props} />
+    ),
   },
   multi: {
     title: 'Multi-image',
-    component: <MultiImageUploader maxCount={20} />,
+    render: (props: ComponentProps<typeof MultiImageUploader>) => (
+      <MultiImageUploader {...props} maxCount={20} />
+    ),
   },
   video: {
     title: 'Video',
-    component: <VideoUploader />,
+    render: (props: ComponentProps<typeof VideoUploader>) => (
+      <VideoUploader {...props} />
+    ),
   },
   files: {
     title: 'Files',
-    component: <FileUploader maxCount={20} />,
+    render: (props: ComponentProps<typeof FileUploader>) => (
+      <FileUploader {...props} maxCount={20} />
+    ),
   },
   multipart: {
     title: 'Multipart',
-    component: <FileUploader maxCount={5} />,
+    render: (props: ComponentProps<typeof FileUploader>) => (
+      <FileUploader {...props} maxCount={5} />
+    ),
   },
   'qiniu-direct': {
     title: 'Qiniu Direct Upload',
-    component: <FileUploader maxCount={5} uploadMode="qiniu-direct" />,
+    render: (props: ComponentProps<typeof FileUploader>) => (
+      <FileUploader {...props} maxCount={5} uploadMode="qiniu-direct" />
+    ),
   },
 } as const;
 
@@ -56,6 +73,9 @@ export default () => {
   const title = t(`menu.uploads.${key}`, demo.title);
   const uploadsTitle = t('menu.uploads', 'File Uploads');
   const [qiniuDirectEnabled, setQiniuDirectEnabled] = useState<boolean>();
+  const [value, setValue] = useState<string | string[] | null>(
+    ['avatar', 'square', 'cover', 'video'].includes(key) ? null : [],
+  );
 
   useEffect(() => {
     if (key !== 'qiniu-direct') return;
@@ -76,7 +96,7 @@ export default () => {
           title={t('uploader.demo.lifecycle', 'Unified upload lifecycle')}
           description={t(
             'uploader.demo.lifecycleDescription',
-            'The component handles validation, progress, normal upload, and multipart upload; business pages only manage attachment values.',
+            'The component handles validation, progress, normal upload, and multipart upload; business forms save the returned URL value directly.',
           )}
         />
         <Card>
@@ -98,7 +118,13 @@ export default () => {
               style={{ marginBottom: 16 }}
             />
           )}
-          {demo.component}
+          {demo.render({ value, onChange: setValue })}
+          <Typography.Paragraph style={{ marginTop: 16, marginBottom: 0 }}>
+            <Typography.Text type="secondary">
+              {t('uploader.demo.fieldValue', 'Form field value')}:{' '}
+            </Typography.Text>
+            <Typography.Text code>{JSON.stringify(value)}</Typography.Text>
+          </Typography.Paragraph>
           {key === 'multipart' && (
             <Typography.Paragraph type="secondary" style={{ marginTop: 16 }}>
               {t(

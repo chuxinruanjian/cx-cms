@@ -1,4 +1,4 @@
-import type { Attachment, AttachmentFileType } from '@/services/upload';
+import type { UploadedFile, UploadFileType } from '@/services/upload';
 
 export type UploadTaskStatus =
   | 'waiting'
@@ -26,15 +26,19 @@ export interface UploaderOptions {
   crop?: boolean;
   cropAspect?: number;
   fallbackText?: React.ReactNode;
-  fileType?: AttachmentFileType;
+  fileType?: UploadFileType;
   initialPreviewUrl?: string;
   maxCount?: number;
   multiple?: boolean;
   sortable?: boolean;
   uploadMode?: 'auto' | 'qiniu-direct';
   previewShape?: 'circle' | 'square';
-  value?: Attachment[];
-  onChange?: (attachments: Attachment[]) => void;
+  value?: string | string[] | null;
+  onChange?: (value: string | string[] | null) => void;
+}
+
+export interface UploaderStateFile extends UploadedFile {
+  persisted: boolean;
 }
 
 export interface UploaderProps extends UploaderOptions {

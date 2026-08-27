@@ -1,8 +1,8 @@
 import type {
-  Attachment,
-  AttachmentFileType,
   DirectUploadAuthorization,
   UploadConfig,
+  UploadedFile,
+  UploadFileType,
   UploadSession,
 } from '@/services/upload';
 import {
@@ -33,7 +33,7 @@ export const newUploadToken = () =>
   globalThis.crypto?.randomUUID?.() ??
   `upload_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
-const extensionType = (extension: string): AttachmentFileType => {
+const extensionType = (extension: string): UploadFileType => {
   if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'].includes(extension))
     return 'image';
   if (['mp4', 'webm', 'mov'].includes(extension)) return 'video';
@@ -50,7 +50,7 @@ const extensionType = (extension: string): AttachmentFileType => {
 
 export const validateSelectedFile = async (
   file: File,
-  expectedType?: AttachmentFileType,
+  expectedType?: UploadFileType,
 ) => {
   const config = await loadUploadConfig();
   const extension = file.name.split('.').pop()?.toLowerCase() || '';
@@ -118,11 +118,11 @@ export interface UploadRuntime {
 const normalUpload = async (
   task: UploadTask,
   runtime: UploadRuntime,
-): Promise<Attachment> => {
+): Promise<UploadedFile> => {
   const data = new FormData();
   data.append('file', task.file);
   data.append('uploadToken', task.uploadToken);
-  return uploadWithProgress<Attachment>(
+  return uploadWithProgress<UploadedFile>(
     `${api}/uploads`,
     data,
     runtime.signal,
@@ -184,7 +184,7 @@ const multipartUpload = async (
   task: UploadTask,
   config: UploadConfig,
   runtime: UploadRuntime,
-): Promise<Attachment> => {
+): Promise<UploadedFile> => {
   const session = await getOrCreateSession(task, config, runtime);
   const completed = new Set(session.uploadedChunks);
   const queue = session.missingChunks.slice();
@@ -246,7 +246,7 @@ const multipartUpload = async (
       worker,
     ),
   );
-  const attachment = await requestJson<Attachment>(
+  const attachment = await requestJson<UploadedFile>(
     `${api}/uploads/${session.uploadId}/complete`,
     { method: 'POST', signal: runtime.signal },
   );
@@ -258,12 +258,12 @@ const qiniuDirectUpload = async (
   task: UploadTask,
   config: UploadConfig,
   runtime: UploadRuntime,
-): Promise<Attachment> => {
+): Promise<UploadedFile> => {
   if (!config.directUploadEnabled || config.directUploadProvider !== 'qiniu') {
     throw new Error('Qiniu direct upload is not enabled');
   }
   if (task.attachmentId && !task.uploadId) {
-    await requestJson(`${api}/attachments/${task.attachmentId}`, {
+    await requestJson(`${api}/uploads/files/${task.attachmentId}`, {
       method: 'DELETE',
       signal: runtime.signal,
     }).catch(() => undefined);
@@ -293,7 +293,7 @@ const qiniuDirectUpload = async (
     runtime.signal,
     (progress) => runtime.update({ progress: Math.min(progress, 99) }),
   );
-  return requestJson<Attachment>(
+  return requestJson<UploadedFile>(
     `${api}/uploads/direct/${authorization.attachmentId}/complete`,
     {
       method: 'POST',
@@ -307,7 +307,7 @@ export const uploadFile = async (
   task: UploadTask,
   runtime: UploadRuntime,
   mode: 'auto' | 'qiniu-direct' = 'auto',
-): Promise<Attachment> => {
+): Promise<UploadedFile> => {
   const config = await loadUploadConfig();
   if (mode === 'qiniu-direct') {
     return qiniuDirectUpload(task, config, runtime);

@@ -97,7 +97,8 @@ blueprint for new business pages:
 - Business forms import upload controls from `src/components/Uploader`. Use
   `MultiImageUploader` for a sortable picture-card photo wall and
   `AvatarUploader` for mandatory 1:1 avatar cropping; do not rebuild these flows
-  with page-local `Upload` code.
+  with page-local `Upload` code. Persist the component value directly: single
+  upload fields are URL strings and multi-upload fields are ordered URL arrays.
 - Rich-text fields import `TiptapEditor` from `src/components`. The
   `demoImageUpload` helper is restricted to the static UI-standard blueprint.
   A business image adapter must use the shared upload architecture and return a

@@ -324,7 +324,7 @@ export default [
     icon: 'cloudUpload',
     access: 'canManageFiles',
     routes: [
-      { path: '/uploads', component: './uploads' },
+      { path: '/uploads', redirect: '/uploads/files' },
       {
         path: '/uploads/avatar',
         name: 'avatar',
@@ -372,24 +372,6 @@ export default [
         name: 'qiniu-direct',
         access: 'canUploadFiles',
         component: './uploads/demo',
-      },
-      {
-        path: '/uploads/tasks',
-        name: 'tasks',
-        access: 'canViewFiles',
-        component: './uploads/tasks',
-      },
-      {
-        path: '/uploads/temporary',
-        name: 'temporary',
-        access: 'canCleanupFiles',
-        component: './uploads/temporary',
-      },
-      {
-        path: '/uploads/resources',
-        name: 'resources',
-        access: 'canViewFiles',
-        component: './uploads/resources',
       },
     ],
   },

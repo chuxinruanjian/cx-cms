@@ -9,8 +9,7 @@ import type { GetProp, UploadFile, UploadProps } from 'antd';
 import { App, Button, Image, Progress, Space, Typography, Upload } from 'antd';
 import ImgCrop from 'antd-img-crop';
 import { useEffect, useMemo, useState } from 'react';
-import type { Attachment } from '@/services/upload';
-import { getAdminToken } from '@/utils/adminAuth';
+import type { UploadedFile } from '@/services/upload';
 import useStyles from './style.style';
 import type { UploaderProps, UploadTask } from './types';
 import { useUploader } from './useUploader';
@@ -18,7 +17,7 @@ import { useUploader } from './useUploader';
 type RcFile = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
 
 interface ImageUploadFile extends UploadFile {
-  attachment?: Attachment;
+  uploadedFile?: UploadedFile;
   task?: UploadTask;
 }
 
@@ -29,47 +28,6 @@ const getBase64 = (file: File) =>
     reader.addEventListener('error', reject);
     reader.readAsDataURL(file);
   });
-
-const usePrivatePreviewUrls = (attachments: Attachment[]) => {
-  const [urls, setUrls] = useState<Record<number, string>>({});
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const objectUrls: string[] = [];
-    let active = true;
-
-    void Promise.all(
-      attachments.map(async (attachment) => {
-        if (!attachment.previewUrl) return [attachment.id, ''] as const;
-        try {
-          const token = getAdminToken();
-          const response = await fetch(attachment.previewUrl, {
-            signal: controller.signal,
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          });
-          if (!response.ok) return [attachment.id, ''] as const;
-          const objectUrl = URL.createObjectURL(await response.blob());
-          objectUrls.push(objectUrl);
-          return [attachment.id, objectUrl] as const;
-        } catch {
-          return [attachment.id, ''] as const;
-        }
-      }),
-    ).then((entries) => {
-      if (active) setUrls(Object.fromEntries(entries));
-    });
-
-    return () => {
-      active = false;
-      controller.abort();
-      objectUrls.forEach((url) => {
-        URL.revokeObjectURL(url);
-      });
-    };
-  }, [attachments]);
-
-  return urls;
-};
 
 const useLocalPreview = (file?: File) => {
   const [source, setSource] = useState<string>();
@@ -103,7 +61,6 @@ export const ImageUploader = ({
   const { message } = App.useApp();
   const { styles } = useStyles();
   const uploader = useUploader(options);
-  const previewUrls = usePrivatePreviewUrls(uploader.attachments);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [failedAvatarSource, setFailedAvatarSource] = useState('');
@@ -123,14 +80,14 @@ export const ImageUploader = ({
 
   const fileList = useMemo<ImageUploadFile[]>(
     () => [
-      ...uploader.attachments.map((attachment) => ({
-        uid: `attachment-${attachment.id}`,
-        name: attachment.originalName,
+      ...uploader.files.map((file) => ({
+        uid: `file-${file.id}`,
+        name: file.originalName,
         status: 'done' as const,
-        type: attachment.mimeType,
-        url: previewUrls[attachment.id] || undefined,
-        thumbUrl: previewUrls[attachment.id] || undefined,
-        attachment,
+        type: file.mimeType,
+        url: file.url,
+        thumbUrl: file.url,
+        uploadedFile: file,
       })),
       ...activeTasks.map((task) => ({
         uid: `task-${task.id}`,
@@ -142,7 +99,7 @@ export const ImageUploader = ({
         task,
       })),
     ],
-    [activeTasks, previewUrls, uploader.attachments],
+    [activeTasks, uploader.files],
   );
 
   const beforeUpload: UploadProps['beforeUpload'] = (file, selectedFiles) => {
@@ -160,9 +117,9 @@ export const ImageUploader = ({
     setPreviewOpen(true);
   };
 
-  const removeItem = async (attachment?: Attachment, task?: UploadTask) => {
+  const removeItem = async (uploadedFile?: UploadedFile, task?: UploadTask) => {
     try {
-      if (attachment) await uploader.remove(attachment);
+      if (uploadedFile) await uploader.remove(uploadedFile);
       if (task) await uploader.cancel(task.id);
     } catch (error) {
       message.error(
@@ -175,20 +132,22 @@ export const ImageUploader = ({
   };
   const handleRemove: UploadProps['onRemove'] = (file) => {
     const imageFile = file as ImageUploadFile;
-    return removeItem(imageFile.attachment, imageFile.task);
+    return removeItem(imageFile.uploadedFile, imageFile.task);
   };
 
-  const moveAttachment = (target: ImageUploadFile) => {
-    if (!draggingUid || draggingUid === target.uid || !target.attachment)
+  const moveFile = (target: ImageUploadFile) => {
+    if (!draggingUid || draggingUid === target.uid || !target.uploadedFile)
       return;
-    const sourceId = Number(draggingUid.replace('attachment-', ''));
-    const current = [...uploader.attachments];
-    const from = current.findIndex((item) => item.id === sourceId);
-    const to = current.findIndex((item) => item.id === target.attachment?.id);
+    const sourceId = draggingUid.replace('file-', '');
+    const current = [...uploader.files];
+    const from = current.findIndex((item) => String(item.id) === sourceId);
+    const to = current.findIndex(
+      (item) => String(item.id) === String(target.uploadedFile?.id),
+    );
     if (from < 0 || to < 0) return;
     const [dragged] = current.splice(from, 1);
     current.splice(to, 0, dragged);
-    uploader.setAttachments(current);
+    uploader.setFiles(current);
     setDraggingUid(undefined);
   };
 
@@ -222,9 +181,7 @@ export const ImageUploader = ({
   };
 
   const candidateAvatarSource =
-    localAvatarPreview ||
-    previewUrls[uploader.attachments[0]?.id] ||
-    options.initialPreviewUrl;
+    localAvatarPreview || uploader.files[0]?.url || options.initialPreviewUrl;
   const avatarSource =
     candidateAvatarSource === failedAvatarSource
       ? undefined
@@ -291,7 +248,7 @@ export const ImageUploader = ({
           onDragOver={(event) => {
             if (options.sortable) event.preventDefault();
           }}
-          onDrop={() => moveAttachment(file as ImageUploadFile)}
+          onDrop={() => moveFile(file as ImageUploadFile)}
         >
           {originNode}
         </div>
@@ -327,7 +284,7 @@ export const ImageUploader = ({
     <div className={styles.root}>
       {uploadControl}
 
-      {isAvatar && (uploader.attachments[0] || activeTask) && (
+      {isAvatar && (uploader.files[0] || activeTask) && (
         <Space className={styles.avatarActions}>
           {avatarSource && (
             <Button
@@ -345,8 +302,7 @@ export const ImageUploader = ({
             icon={<DeleteOutlined />}
             onClick={() => {
               if (activeTask) void removeItem(undefined, activeTask);
-              else if (uploader.attachments[0])
-                void removeItem(uploader.attachments[0]);
+              else if (uploader.files[0]) void removeItem(uploader.files[0]);
             }}
           >
             {t('uploader.action.remove', 'Remove')}

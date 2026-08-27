@@ -1,6 +1,5 @@
 import AdminPermission from '#models/admin_permission'
 import AdminRole from '#models/admin_role'
-import AttachmentRelation from '#models/attachment_relation'
 import AdminUser from '#models/admin_user'
 import SmsService from '#services/sms/sms_service'
 import testUtils from '@adonisjs/core/services/test_utils'
@@ -336,7 +335,7 @@ test.group('Admin authentication and RBAC', (group) => {
     if (user.mobile !== secondMobile) throw new Error('Expected the security mobile to change')
   })
 
-  test('updates the current profile and binds an uploaded avatar', async ({ client }) => {
+  test('updates the current profile with an uploaded avatar URL', async ({ client }) => {
     const user = await AdminUser.create({
       username: 'profile-admin',
       fullName: 'Profile Admin',
@@ -357,7 +356,7 @@ test.group('Admin authentication and RBAC', (group) => {
       .file('file', png, { filename: 'avatar.png', contentType: 'image/png' })
 
     upload.assertStatus(201)
-    const attachmentId = (upload.body() as { id: number }).id
+    const avatarUrl = (upload.body() as { url: string }).url
     const updated = await client
       .patch('/api/v1/admin/auth/me')
       .header('Authorization', authorization)
@@ -365,7 +364,7 @@ test.group('Admin authentication and RBAC', (group) => {
         fullName: 'Updated Admin',
         email: 'updated@example.com',
         profile: 'Reusable project administrator',
-        avatarAttachmentId: attachmentId,
+        avatar: avatarUrl,
       })
 
     updated.assertStatus(200)
@@ -373,24 +372,16 @@ test.group('Admin authentication and RBAC', (group) => {
       fullName: 'Updated Admin',
       email: 'updated@example.com',
       profile: 'Reusable project administrator',
-      avatar: `/api/v1/admin/attachments/${attachmentId}/content`,
+      avatar: avatarUrl,
     })
 
     await user.refresh()
     if (user.profile !== 'Reusable project administrator') {
       throw new Error('Expected the profile to be persisted')
     }
-    const relation = await AttachmentRelation.query()
-      .where('attachment_id', attachmentId)
-      .where('business_type', 'admin_user')
-      .where('business_id', String(user.id))
-      .where('field_name', 'avatar')
-      .first()
-    if (!relation) throw new Error('Expected the avatar attachment to be bound')
+    if (user.avatar !== avatarUrl) throw new Error('Expected the avatar URL to be persisted')
 
-    const avatar = await client
-      .get(`/api/v1/admin/attachments/${attachmentId}/content`)
-      .header('Authorization', authorization)
+    const avatar = await client.get(avatarUrl)
     avatar.assertStatus(200)
   })
 

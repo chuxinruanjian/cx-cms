@@ -15,7 +15,8 @@ export default {
   'uploader.message.removeFailed': '删除图片失败',
   'uploader.demo.lifecycle': '统一上传流程',
   'uploader.demo.lifecycleDescription':
-    '组件统一处理校验、进度、普通上传和大文件分片；业务页面只维护附件值。',
+    '组件统一处理校验、进度、普通上传和大文件分片；业务表单直接保存返回的 URL。',
+  'uploader.demo.fieldValue': '表单字段值',
   'uploader.demo.multipartHint':
     '上传阈值和分片大小由服务端配置。请选择超过阈值的文件测试分片上传。',
   'uploader.demo.qiniuDirectHint':

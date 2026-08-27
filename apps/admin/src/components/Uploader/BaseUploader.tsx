@@ -11,30 +11,20 @@ import { useIntl } from '@umijs/max';
 import type { UploadProps } from 'antd';
 import { App, Button, List, Progress, Space, Typography, Upload } from 'antd';
 import { useState } from 'react';
-import type { Attachment } from '@/services/upload';
-import { getAdminToken } from '@/utils/adminAuth';
+import type { UploadedFile } from '@/services/upload';
 import { ImageUploader } from './ImageUploader';
 import type { UploaderProps } from './types';
 import { useUploader } from './useUploader';
 
 const { Dragger } = Upload;
 
-export const downloadAttachment = async (attachment: Attachment) => {
-  if (!attachment.downloadUrl) return;
-  const response = await fetch(`${attachment.downloadUrl}?download=1`, {
-    headers: getAdminToken()
-      ? { Authorization: `Bearer ${getAdminToken()}` }
-      : {},
-  });
-  if (!response.ok) throw new Error('Download failed');
-  const objectUrl = URL.createObjectURL(await response.blob());
+export const downloadUploadedFile = (file: UploadedFile) => {
   const anchor = document.createElement('a');
-  anchor.href = objectUrl;
-  anchor.download = attachment.originalName;
+  anchor.href = `${file.url}${file.url.includes('?') ? '&' : '?'}download=1`;
+  anchor.download = file.originalName;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
 };
 
 const GenericUploader = ({
@@ -46,7 +36,7 @@ const GenericUploader = ({
   const intl = useIntl();
   const { message } = App.useApp();
   const uploader = useUploader(options);
-  const [draggingId, setDraggingId] = useState<number>();
+  const [draggingId, setDraggingId] = useState<string>();
   const t = (id: string, defaultMessage: string) =>
     intl.formatMessage({ id, defaultMessage });
   const uploadTitle =
@@ -75,7 +65,7 @@ const GenericUploader = ({
         beforeUpload={beforeUpload}
         disabled={
           Boolean(options.maxCount) &&
-          uploader.attachments.length >= (options.maxCount || 0)
+          uploader.files.length >= (options.maxCount || 0)
         }
       >
         <p className="ant-upload-drag-icon">
@@ -156,29 +146,27 @@ const GenericUploader = ({
         />
       )}
 
-      {uploader.attachments.length > 0 && (
+      {uploader.files.length > 0 && (
         <List
           grid={{ gutter: 12, xs: 1, sm: 2, md: 3, lg: 4 }}
-          dataSource={uploader.attachments}
-          renderItem={(attachment) => (
+          dataSource={uploader.files}
+          renderItem={(file) => (
             <List.Item
               draggable={options.sortable}
-              onDragStart={() => setDraggingId(attachment.id)}
+              onDragStart={() => setDraggingId(String(file.id))}
               onDragOver={(event) => {
                 if (options.sortable) event.preventDefault();
               }}
               onDrop={() => {
-                if (!draggingId || draggingId === attachment.id) return;
-                const current = [...uploader.attachments];
+                if (!draggingId || draggingId === String(file.id)) return;
+                const current = [...uploader.files];
                 const from = current.findIndex(
-                  (item) => item.id === draggingId,
+                  (item) => String(item.id) === draggingId,
                 );
-                const to = current.findIndex(
-                  (item) => item.id === attachment.id,
-                );
+                const to = current.findIndex((item) => item.id === file.id);
                 const [dragged] = current.splice(from, 1);
                 current.splice(to, 0, dragged);
-                uploader.setAttachments(current);
+                uploader.setFiles(current);
                 setDraggingId(undefined);
               }}
             >
@@ -188,27 +176,21 @@ const GenericUploader = ({
                   <Typography.Link
                     ellipsis
                     style={{ maxWidth: 160 }}
-                    onClick={() =>
-                      void downloadAttachment(attachment).catch((error) =>
-                        message.error(error.message),
-                      )
-                    }
+                    onClick={() => downloadUploadedFile(file)}
                   >
-                    {attachment.originalName}
+                    {file.originalName}
                   </Typography.Link>
                   <Typography.Text type="secondary">
-                    {(attachment.size / 1024).toFixed(1)} KB
+                    {file.size > 0
+                      ? `${(file.size / 1024).toFixed(1)} KB`
+                      : file.url}
                   </Typography.Text>
                   <Button
                     type="text"
                     size="small"
                     danger
                     icon={<DeleteOutlined />}
-                    onClick={() =>
-                      void uploader
-                        .remove(attachment)
-                        .catch((error) => message.error(error.message))
-                    }
+                    onClick={() => void uploader.remove(file)}
                   >
                     {t('uploader.action.remove', 'Remove')}
                   </Button>

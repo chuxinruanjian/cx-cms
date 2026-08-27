@@ -4,7 +4,7 @@ import type { CommandOptions } from '@adonisjs/core/types/ace'
 
 export default class CleanupUploads extends BaseCommand {
   static commandName = 'uploads:cleanup'
-  static description = 'Remove expired multipart sessions and unbound temporary attachments'
+  static description = 'Remove expired multipart sessions and incomplete uploads'
   static options: CommandOptions = {
     startApp: true,
   }

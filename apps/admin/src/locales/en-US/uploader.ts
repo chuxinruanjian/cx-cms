@@ -16,7 +16,8 @@ export default {
   'uploader.message.removeFailed': 'Failed to remove the image',
   'uploader.demo.lifecycle': 'Unified upload lifecycle',
   'uploader.demo.lifecycleDescription':
-    'The component handles validation, progress, normal upload, and multipart upload; business pages only manage attachment values.',
+    'The component handles validation, progress, normal upload, and multipart upload; business forms save the returned URL directly.',
+  'uploader.demo.fieldValue': 'Form field value',
   'uploader.demo.multipartHint':
     'The upload threshold and chunk size come from the server. Select a file larger than the threshold to test multipart upload.',
   'uploader.demo.qiniuDirectHint':

@@ -1,43 +1,16 @@
 import UploadException from '#exceptions/upload_exception'
-import UploadChunk from '#models/upload_chunk'
-import UploadSession from '#models/upload_session'
+import Attachment from '#models/attachment'
 import AttachmentService from '#services/upload/attachment_service'
 import UploadSessionService from '#services/upload/upload_session_service'
 import {
   completeDirectUploadValidator,
   initializeUploadValidator,
-  listUploadSessionsValidator,
   normalUploadValidator,
   uploadChunkValidator,
 } from '#validators/admin_upload'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class UploadsController {
-  async index({ auth, request }: HttpContext) {
-    auth.getUserOrFail()
-    const {
-      page = 1,
-      perPage = 20,
-      status,
-    } = await request.validateUsing(listUploadSessionsValidator)
-    const query = UploadSession.query().orderBy('id', 'desc')
-    if (status) query.where('status', status)
-    const result = await query.paginate(page, perPage)
-
-    const data = await Promise.all(
-      result.all().map(async (session) => {
-        const chunks = await UploadChunk.query()
-          .where('upload_session_id', session.id)
-          .orderBy('chunk_index', 'asc')
-        return UploadSessionService.serialize(
-          session,
-          chunks.map((chunk) => chunk.chunkIndex)
-        )
-      })
-    )
-    return { data, meta: result.getMeta() }
-  }
-
   async store({ auth, request, response }: HttpContext) {
     const user = auth.getUserOrFail()
     const { uploadToken } = await request.validateUsing(normalUploadValidator)
@@ -114,5 +87,9 @@ export default class UploadsController {
 
   async abort({ auth, params }: HttpContext) {
     return UploadSessionService.abort(auth.getUserOrFail(), params.uploadId)
+  }
+
+  async destroy({ auth, params }: HttpContext) {
+    return AttachmentService.delete(auth.getUserOrFail(), await Attachment.findOrFail(params.id))
   }
 }

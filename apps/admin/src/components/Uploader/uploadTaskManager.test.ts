@@ -1,8 +1,8 @@
 import { webcrypto } from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
-  Attachment,
   UploadConfig,
+  UploadedFile,
   UploadSession,
 } from '@/services/upload';
 import {
@@ -44,8 +44,11 @@ const config: UploadConfig = {
 const attachment = {
   id: 1,
   originalName: 'file.bin',
-  status: 'temporary',
-} as Attachment;
+  mimeType: 'application/octet-stream',
+  size: 4,
+  status: 'active',
+  url: '/api/v1/uploads/files/file-uuid',
+} as UploadedFile;
 
 const task = (file: File) => ({
   id: 'task-id',

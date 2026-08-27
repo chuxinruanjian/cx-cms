@@ -175,33 +175,6 @@ export class AdminUserSchema extends BaseModel {
   declare username: string
 }
 
-export class AttachmentRelationSchema extends BaseModel {
-  static $columns = [
-    'attachmentId',
-    'businessId',
-    'businessType',
-    'createdAt',
-    'fieldName',
-    'id',
-    'sort',
-  ] as const
-  $columns = AttachmentRelationSchema.$columns
-  @column()
-  declare attachmentId: number
-  @column()
-  declare businessId: string
-  @column()
-  declare businessType: string
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
-  @column()
-  declare fieldName: string
-  @column({ isPrimary: true })
-  declare id: number
-  @column()
-  declare sort: number
-}
-
 export class AttachmentSchema extends BaseModel {
   static $columns = [
     'boundAt',

@@ -1,7 +1,7 @@
 import { request } from '@umijs/max';
 import { clearAdminToken, getAdminToken } from '@/utils/adminAuth';
 
-export type AttachmentFileType =
+export type UploadFileType =
   | 'image'
   | 'video'
   | 'audio'
@@ -9,7 +9,7 @@ export type AttachmentFileType =
   | 'archive'
   | 'other';
 
-export type AttachmentStatus =
+export type UploadStatus =
   | 'uploading'
   | 'temporary'
   | 'active'
@@ -17,48 +17,28 @@ export type AttachmentStatus =
   | 'deleted'
   | 'failed';
 
-export interface Attachment {
-  id: number;
-  uuid: string;
+export interface UploadedFile {
+  id: number | string;
+  uuid?: string;
   originalName: string;
-  fileName: string;
-  storageDisk: 'local' | 'qiniu' | 'oss' | 's3';
-  extension: string;
+  fileName?: string;
+  storageDisk?: 'local' | 'qiniu' | 'oss' | 's3';
+  extension?: string;
   mimeType: string;
-  fileType: AttachmentFileType;
+  fileType?: UploadFileType;
   size: number;
-  hash: string | null;
-  width: number | null;
-  height: number | null;
-  duration: number | null;
-  status: AttachmentStatus;
-  uploadMode: 'normal' | 'multipart' | 'direct';
-  uploadToken: string;
-  uploaderId: number;
-  isComplete: boolean;
-  url: string | null;
-  previewUrl: string | null;
-  downloadUrl: string | null;
-  progress: number;
-  errorMessage: string | null;
-  referenceCount: number;
-  createdAt: string;
-  updatedAt: string;
-  boundAt: string | null;
-  expiresAt: string | null;
-  deletedAt: string | null;
-  references?: Array<{
-    businessType: string;
-    businessId: string;
-    fieldName: string;
-    sort: number;
-    createdAt: string;
-  }>;
+  hash?: string | null;
+  width?: number | null;
+  height?: number | null;
+  duration?: number | null;
+  status?: UploadStatus;
+  uploadMode?: 'normal' | 'multipart' | 'direct';
+  url: string;
 }
 
 export interface UploadConfig {
   allowedExtensions: readonly string[];
-  maxBytes: Record<AttachmentFileType, number>;
+  maxBytes: Record<UploadFileType, number>;
   normalThreshold: number;
   chunkSize: number;
   concurrency: number;
@@ -102,61 +82,10 @@ export interface UploadSession {
   expiresAt: string;
 }
 
-export interface Paginated<T> {
-  data: T[];
-  meta: {
-    total: number;
-    perPage: number;
-    currentPage: number;
-    lastPage: number;
-  };
-}
-
 const api = '/api/v1/admin';
 
 export const getUploadConfig = () =>
   request<UploadConfig>(`${api}/upload-config`);
-
-export const listAttachments = (params: Record<string, unknown>) =>
-  request<Paginated<Attachment>>(`${api}/attachments`, { params });
-
-export const getAttachment = (id: number) =>
-  request<Attachment>(`${api}/attachments/${id}`);
-
-export const deleteAttachment = (id: number) =>
-  request<Attachment>(`${api}/attachments/${id}`, { method: 'DELETE' });
-
-export const bindAttachments = (payload: {
-  attachmentIds: number[];
-  businessType: string;
-  businessId: string;
-  fieldName: string;
-}) =>
-  request<Attachment[]>(`${api}/attachments/bind`, {
-    method: 'POST',
-    data: payload,
-  });
-
-export const sortAttachments = (payload: {
-  attachmentIds: number[];
-  businessType: string;
-  businessId: string;
-  fieldName: string;
-}) =>
-  request<{ attachmentIds: number[] }>(`${api}/attachments/sort`, {
-    method: 'POST',
-    data: payload,
-  });
-
-export const listUploadSessions = (params: Record<string, unknown>) =>
-  request<Paginated<UploadSession>>(`${api}/uploads`, { params });
-
-export const cleanupUploads = () =>
-  request<{
-    sessionsCleaned: number;
-    attachmentsCleaned: number;
-    errors: Array<{ type: string; id: string | number; message: string }>;
-  }>(`${api}/uploads/cleanup`, { method: 'POST' });
 
 export const requestJson = async <T>(
   path: string,

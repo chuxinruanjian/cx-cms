@@ -1,8 +1,8 @@
 import { App } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Attachment } from '@/services/upload';
-import { deleteAttachment } from '@/services/upload';
-import type { UploaderOptions, UploadTask } from './types';
+import type { UploadedFile } from '@/services/upload';
+import { requestJson } from '@/services/upload';
+import type { UploaderOptions, UploaderStateFile, UploadTask } from './types';
 import {
   abortUploadSession,
   newUploadToken,
@@ -12,22 +12,46 @@ import {
 
 export const useUploader = (options: UploaderOptions = {}) => {
   const { message } = App.useApp();
-  const [attachments, setAttachments] = useState<Attachment[]>(
-    options.value || [],
+  const normalizeValue = useCallback(
+    (value: UploaderOptions['value'], current: UploaderStateFile[] = []) => {
+      const urls = (Array.isArray(value) ? value : value ? [value] : []).filter(
+        Boolean,
+      );
+      return urls.map<UploaderStateFile>((url) => {
+        const existing = current.find((file) => file.url === url);
+        if (existing) return existing;
+        const name = decodeURIComponent(
+          url.split('/').pop()?.split('?')[0] || 'file',
+        );
+        return {
+          id: url,
+          originalName: name,
+          mimeType: '',
+          size: 0,
+          url,
+          persisted: true,
+        };
+      });
+    },
+    [],
+  );
+  const [files, setFiles] = useState<UploaderStateFile[]>(() =>
+    normalizeValue(options.value),
   );
   const [tasks, setTasks] = useState<UploadTask[]>([]);
   const controllers = useRef(new Map<string, AbortController>());
 
   useEffect(() => {
-    if (options.value) setAttachments(options.value);
-  }, [options.value]);
+    setFiles((current) => normalizeValue(options.value, current));
+  }, [normalizeValue, options.value]);
 
-  const emitAttachments = useCallback(
-    (next: Attachment[]) => {
-      setAttachments(next);
-      options.onChange?.(next);
+  const emitFiles = useCallback(
+    (next: UploaderStateFile[]) => {
+      setFiles(next);
+      const urls = next.map((file) => file.url);
+      options.onChange?.(options.multiple === false ? (urls[0] ?? null) : urls);
     },
-    [options],
+    [options.multiple, options.onChange],
   );
 
   const updateTask = useCallback(
@@ -44,7 +68,7 @@ export const useUploader = (options: UploaderOptions = {}) => {
       controllers.current.set(task.id, controller);
       updateTask(task.id, { status: 'uploading', error: undefined });
       try {
-        const attachment = await uploadFile(
+        const uploaded = await uploadFile(
           task,
           {
             signal: controller.signal,
@@ -55,17 +79,24 @@ export const useUploader = (options: UploaderOptions = {}) => {
         updateTask(task.id, {
           status: 'success',
           progress: 100,
-          attachmentId: attachment.id,
+          attachmentId:
+            typeof uploaded.id === 'number' ? uploaded.id : undefined,
         });
-        setAttachments((current) => {
+        if (!uploaded.url)
+          throw new Error('Upload response does not contain a URL');
+        setFiles((current) => {
+          const file: UploaderStateFile = { ...uploaded, persisted: false };
           const next =
             options.multiple === false
-              ? [attachment]
-              : [...current, attachment].slice(
+              ? [file]
+              : [...current, file].slice(
                   0,
                   options.maxCount || Number.POSITIVE_INFINITY,
                 );
-          options.onChange?.(next);
+          const urls = next.map((item) => item.url);
+          options.onChange?.(
+            options.multiple === false ? (urls[0] ?? null) : urls,
+          );
           return next;
         });
       } catch (error) {
@@ -81,7 +112,7 @@ export const useUploader = (options: UploaderOptions = {}) => {
   );
 
   const addFiles = useCallback(
-    async (files: File[]) => {
+    async (selectedFiles: File[]) => {
       const pendingCount = tasks.filter(
         (task) => !['success', 'canceled'].includes(task.status),
       ).length;
@@ -93,10 +124,10 @@ export const useUploader = (options: UploaderOptions = {}) => {
           : Math.max(
               0,
               (options.maxCount || Number.POSITIVE_INFINITY) -
-                attachments.length -
+                files.length -
                 pendingCount,
             );
-      const selected = files.slice(0, available);
+      const selected = selectedFiles.slice(0, available);
       const accepted: File[] = [];
       for (const file of selected) {
         try {
@@ -120,7 +151,7 @@ export const useUploader = (options: UploaderOptions = {}) => {
       setTasks((current) => [...current, ...next]);
       next.forEach((task) => void start(task));
     },
-    [attachments.length, options.maxCount, options.multiple, start, tasks],
+    [files.length, options.maxCount, options.multiple, start, tasks],
   );
 
   const pause = (id: string) => {
@@ -138,18 +169,19 @@ export const useUploader = (options: UploaderOptions = {}) => {
     controllers.current.get(id)?.abort();
     if (task?.uploadId) await abortUploadSession(task.uploadId);
     if (task?.attachmentId && !task.uploadId) {
-      await deleteAttachment(task.attachmentId);
+      await requestJson(`/api/v1/admin/uploads/files/${task.attachmentId}`, {
+        method: 'DELETE',
+      });
     }
     updateTask(id, { status: 'canceled' });
   };
 
-  const remove = async (attachment: Attachment) => {
-    await deleteAttachment(attachment.id);
-    emitAttachments(attachments.filter((item) => item.id !== attachment.id));
+  const remove = async (file: UploadedFile) => {
+    emitFiles(files.filter((item) => item.id !== file.id));
   };
 
   return {
-    attachments,
+    files,
     tasks,
     uploading: tasks.some((task) => task.status === 'uploading'),
     addFiles,
@@ -158,6 +190,6 @@ export const useUploader = (options: UploaderOptions = {}) => {
     retry: resume,
     cancel,
     remove,
-    setAttachments: emitAttachments,
+    setFiles: emitFiles,
   };
 };

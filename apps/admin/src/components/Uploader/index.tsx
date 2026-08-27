@@ -1,7 +1,7 @@
 import { BaseUploader } from './BaseUploader';
 import type { UploaderProps } from './types';
 
-export { BaseUploader, downloadAttachment } from './BaseUploader';
+export { BaseUploader, downloadUploadedFile } from './BaseUploader';
 export type { UploaderOptions, UploaderProps, UploadTask } from './types';
 export { useUploader } from './useUploader';
 

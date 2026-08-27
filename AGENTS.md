@@ -57,7 +57,7 @@ Run commands from the repository root unless noted otherwise.
 - `npm run db:migrate`: apply Lucid migrations.
 - `npm run db:rollback`: roll back the latest Lucid migration batch.
 - `npm run db:seed`: initialize RBAC permissions and the first super administrator.
-- `npm run uploads:cleanup`: delete expired multipart sessions and unbound temporary files.
+- `npm run uploads:cleanup`: delete expired multipart sessions and incomplete uploads.
 
 Before finishing a change, run the smallest relevant checks. For cross-cutting
 changes, run typecheck, tests, and builds for every affected workspace.
@@ -100,11 +100,11 @@ changes, run typecheck, tests, and builds for every affected workspace.
 - Permission codes use dot-separated lowercase names such as
   `admin.roles.update`. Protect management routes with the named `adminRbac`
   middleware instead of duplicating role checks in controllers.
-- File tables use `attachments`, `attachment_relations`, `upload_sessions`, and
-  `upload_chunks`. They are shared infrastructure tables and therefore do not
-  use the management-only `admin_` prefix. Business tables store
-  attachment IDs or bind through `AttachmentService`; they never store local
-  storage paths as their only file reference.
+- Upload internals use `attachments`, `upload_sessions`, and `upload_chunks`.
+  They are shared infrastructure tables and therefore do not use the
+  management-only `admin_` prefix. There is no asset library or polymorphic
+  attachment binding. Business tables save the returned URL in their actual
+  fields and must never use an attachment ID as a business foreign key.
 - All upload scenarios use the services under `app/services/upload`. Business
   code must use `StorageManager`, never a concrete OSS/S3 SDK directly.
 - Local storage remains the default. Qiniu uses the `qiniu` storage adapter and
@@ -121,15 +121,15 @@ changes, run typecheck, tests, and builds for every affected workspace.
 - Rich-text fields use `apps/admin/src/components/TiptapEditor`. The
   `demoImageUpload` data-URL adapter is only for the static `/ui-standard/create`
   blueprint. Business rich-text images must integrate through the shared upload
-  architecture and persist a durable browser-renderable URL plus attachment
-  identity; never persist demo data URLs, blob URLs, or the bearer-protected
-  admin attachment content route inside business HTML.
-- Uploaded files start as `temporary` and become `active` only after a successful
-  business bind. Schedule `npm run uploads:cleanup` to remove expired temporary
-  files and multipart sessions.
-- `POST /attachments/bind` synchronizes the complete attachment set for one
-  business type, ID, and field. Send an empty list to clear the field; never
-  mutate `attachment_relations` directly from a controller.
+  architecture and persist its durable browser-renderable URL; never persist
+  demo data URLs, blob URLs, attachment IDs, or bearer-protected URLs inside
+  business HTML.
+- A completed upload is immediately `active` and returns either the public local
+  `/api/v1/uploads/files/{uuid}` URL or the configured provider CDN URL. Cleanup
+  is restricted to expired multipart sessions and incomplete/failed uploads.
+- Single-file form fields use `string | null`; multi-file fields use `string[]`.
+  Removing a URL from a form changes only that form value and must not physically
+  delete the uploaded object.
 
 ## Frontend rules
 

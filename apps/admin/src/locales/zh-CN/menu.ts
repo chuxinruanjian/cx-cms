@@ -61,7 +61,4 @@ export default {
   'menu.uploads.files': '通用文件',
   'menu.uploads.multipart': '大文件分片',
   'menu.uploads.qiniu-direct': '七牛云直传',
-  'menu.uploads.tasks': '上传任务',
-  'menu.uploads.temporary': '临时文件',
-  'menu.uploads.resources': '资源管理',
 };

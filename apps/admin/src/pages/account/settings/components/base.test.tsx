@@ -141,7 +141,7 @@ describe('account basic settings', () => {
     await waitFor(() => {
       expect(mocks.avatarProps).toMatchObject({
         fallbackText: 'AD',
-        initialPreviewUrl: undefined,
+        value: '',
         title: 'Change avatar',
       });
     });
@@ -161,7 +161,7 @@ describe('account basic settings', () => {
     await waitFor(() => {
       expect(mocks.avatarProps).toMatchObject({
         fallbackText: '张三',
-        initialPreviewUrl: '/avatar.png',
+        value: '/avatar.png',
       });
     });
   });
@@ -177,6 +177,7 @@ describe('account basic settings', () => {
     });
 
     expect(service.updateCurrent).toHaveBeenCalledWith({
+      avatar: null,
       email: 'new@example.com',
       fullName: 'New Name',
       profile: 'Updated profile',
@@ -184,15 +185,13 @@ describe('account basic settings', () => {
     expect(mocks.success).toHaveBeenCalledWith('Basic information updated');
   });
 
-  it('submits a newly uploaded avatar attachment', async () => {
+  it('submits a newly uploaded avatar URL', async () => {
     renderView();
 
     await waitFor(() => expect(mocks.avatarProps).toBeDefined());
     act(() => {
-      const onChange = mocks.avatarProps?.onChange as (
-        attachments: Array<{ id: number }>,
-      ) => void;
-      onChange([{ id: 88 }]);
+      const onChange = mocks.avatarProps?.onChange as (url: string) => void;
+      onChange('/api/v1/uploads/files/avatar-uuid');
     });
     await waitFor(() => expect(mocks.onFinish).toBeTypeOf('function'));
     await mocks.onFinish?.({
@@ -202,7 +201,7 @@ describe('account basic settings', () => {
     });
 
     expect(service.updateCurrent).toHaveBeenCalledWith({
-      avatarAttachmentId: 88,
+      avatar: '/api/v1/uploads/files/avatar-uuid',
       email: 'admin@example.com',
       fullName: 'Ant Design',
       profile: 'Profile',

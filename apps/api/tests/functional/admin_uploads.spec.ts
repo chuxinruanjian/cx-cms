@@ -1,6 +1,5 @@
 import uploadConfig from '#config/upload'
 import Attachment from '#models/attachment'
-import AttachmentRelation from '#models/attachment_relation'
 import UploadSession from '#models/upload_session'
 import AdminUser from '#models/admin_user'
 import AttachmentService from '#services/upload/attachment_service'
@@ -159,12 +158,13 @@ test.group('Unified admin uploads', (group) => {
   })
 
   test('uses shared attachment table names and MySQL-safe index names', async ({ assert }) => {
-    const tableNames = ['attachments', 'attachment_relations', 'upload_sessions', 'upload_chunks']
+    const tableNames = ['attachments', 'upload_sessions', 'upload_chunks']
 
     for (const tableName of tableNames) {
       assert.isTrue(await db.connection().schema.hasTable(tableName))
       assert.isFalse(await db.connection().schema.hasTable(`admin_${tableName}`))
     }
+    assert.isFalse(await db.connection().schema.hasTable('attachment_relations'))
 
     const indexes = await db
       .from('sqlite_master')
@@ -178,7 +178,7 @@ test.group('Unified admin uploads', (group) => {
     }
   })
 
-  test('uploads a small file as a temporary attachment and deletes it physically', async ({
+  test('uploads a small file with a persistent public URL and deletes it physically', async ({
     client,
   }) => {
     const user = await createUser('uploader')
@@ -189,19 +189,22 @@ test.group('Unified admin uploads', (group) => {
     response.assertBodyContains({
       originalName: 'image.png',
       fileType: 'image',
-      status: 'temporary',
+      status: 'active',
       uploadMode: 'normal',
       progress: 100,
     })
 
     const attachment = await Attachment.findOrFail((response.body() as { id: number }).id)
+    response.assertBodyContains({ url: `/api/v1/uploads/files/${attachment.uuid}` })
+    const publicFile = await client.get(`/api/v1/uploads/files/${attachment.uuid}`)
+    publicFile.assertStatus(200)
     const adapter = StorageManager.disk('local')
     await adapter.exists(attachment.objectKey!).then((exists) => {
       if (!exists) throw new Error('Expected stored file to exist')
     })
 
     const deleted = await client
-      .delete(`/api/v1/admin/attachments/${attachment.id}`)
+      .delete(`/api/v1/admin/uploads/files/${attachment.id}`)
       .header('Authorization', authorization)
     deleted.assertStatus(200)
     deleted.assertBodyContains({ status: 'deleted' })
@@ -251,7 +254,7 @@ test.group('Unified admin uploads', (group) => {
         id: body.attachmentId,
         storageDisk: 'qiniu',
         uploadMode: 'direct',
-        status: 'temporary',
+        status: 'active',
         url: `https://cdn.example.test/${body.objectKey}`,
       })
     } finally {
@@ -338,91 +341,12 @@ test.group('Unified admin uploads', (group) => {
       originalName: 'contract.pdf',
       size: value.length,
       hash: sha256(value),
-      status: 'temporary',
+      status: 'active',
       progress: 100,
     })
   })
 
-  test('binds attachments transactionally, saves order, and prevents referenced deletion', async ({
-    client,
-  }) => {
-    const user = await createUser('binder')
-    const authorization = await bearer(user)
-    const first = await uploadNormal(client, authorization, png(), 'one.png')
-    const second = await uploadNormal(client, authorization, png(), 'two.png')
-    const ids = [(first.body() as { id: number }).id, (second.body() as { id: number }).id]
-
-    const bound = await client
-      .post('/api/v1/admin/attachments/bind')
-      .header('Authorization', authorization)
-      .json({
-        attachmentIds: ids,
-        businessType: 'products',
-        businessId: 'product-1',
-        fieldName: 'gallery',
-      })
-    bound.assertStatus(200)
-    bound.assertBodyContains([{ status: 'active' }, { status: 'active' }])
-
-    const sorted = await client
-      .post('/api/v1/admin/attachments/sort')
-      .header('Authorization', authorization)
-      .json({
-        attachmentIds: [...ids].reverse(),
-        businessType: 'products',
-        businessId: 'product-1',
-        fieldName: 'gallery',
-      })
-    sorted.assertStatus(200)
-    sorted.assertBodyContains({ attachmentIds: [...ids].reverse() })
-
-    const relations = await AttachmentRelation.query().orderBy('sort', 'asc')
-    if (
-      relations.map((relation) => relation.attachmentId).join(',') !== [...ids].reverse().join(',')
-    ) {
-      throw new Error('Attachment order was not persisted')
-    }
-
-    const deletion = await client
-      .delete(`/api/v1/admin/attachments/${ids[0]}`)
-      .header('Authorization', authorization)
-    deletion.assertStatus(409)
-    deletion.assertBodyContains({ code: 'E_ATTACHMENT_IN_USE' })
-
-    const replaced = await client
-      .post('/api/v1/admin/attachments/bind')
-      .header('Authorization', authorization)
-      .json({
-        attachmentIds: [ids[1]],
-        businessType: 'products',
-        businessId: 'product-1',
-        fieldName: 'gallery',
-      })
-    replaced.assertStatus(200)
-
-    const detached = await Attachment.findOrFail(ids[0])
-    if (detached.status !== 'temporary' || !detached.expiresAt) {
-      throw new Error('A detached attachment must return to the temporary lifecycle')
-    }
-    await client
-      .delete(`/api/v1/admin/attachments/${ids[0]}`)
-      .header('Authorization', authorization)
-      .then((result) => result.assertStatus(200))
-
-    const cleared = await client
-      .post('/api/v1/admin/attachments/bind')
-      .header('Authorization', authorization)
-      .json({
-        attachmentIds: [],
-        businessType: 'products',
-        businessId: 'product-1',
-        fieldName: 'gallery',
-      })
-    cleared.assertStatus(200)
-    cleared.assertBody([])
-  })
-
-  test('keeps unbound files temporary and cleans them after expiry', async ({ client }) => {
+  test('does not expire a completed URL-backed upload', async ({ client }) => {
     const user = await createUser('cleanup')
     const authorization = await bearer(user)
     const response = await uploadNormal(client, authorization)
@@ -431,10 +355,10 @@ test.group('Unified admin uploads', (group) => {
     await attachment.save()
 
     const result = await UploadCleanupService.run()
-    if (result.attachmentsCleaned !== 1) throw new Error('Expected one attachment cleanup')
+    if (result.attachmentsCleaned !== 0) throw new Error('Completed files must remain available')
 
     await attachment.refresh()
-    if (attachment.status !== 'deleted') throw new Error('Expected attachment to be deleted')
+    if (attachment.status !== 'active') throw new Error('Expected the uploaded file to stay active')
   })
 
   test('cleans expired multipart sessions and supports explicit cancellation', async ({
@@ -525,7 +449,7 @@ test.group('Unified admin uploads', (group) => {
     const uploaded = await uploadNormal(client, await bearer(owner))
 
     const response = await client
-      .delete(`/api/v1/admin/attachments/${(uploaded.body() as { id: number }).id}`)
+      .delete(`/api/v1/admin/uploads/files/${(uploaded.body() as { id: number }).id}`)
       .header('Authorization', await bearer(other))
     response.assertStatus(403)
     response.assertBodyContains({ code: 'E_ATTACHMENT_FORBIDDEN' })
@@ -539,13 +463,13 @@ test.group('Unified admin uploads', (group) => {
     await StorageManager.disk('local').delete(attachment.objectKey!)
 
     const first = await client
-      .delete(`/api/v1/admin/attachments/${attachment.id}`)
+      .delete(`/api/v1/admin/uploads/files/${attachment.id}`)
       .header('Authorization', authorization)
     first.assertStatus(200)
     first.assertBodyContains({ status: 'deleted' })
 
     const second = await client
-      .delete(`/api/v1/admin/attachments/${attachment.id}`)
+      .delete(`/api/v1/admin/uploads/files/${attachment.id}`)
       .header('Authorization', authorization)
     second.assertStatus(200)
     second.assertBodyContains({ status: 'deleted' })

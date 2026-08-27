@@ -1,14 +1,11 @@
 import uploadConfig from '#config/upload'
 import UploadException from '#exceptions/upload_exception'
 import Attachment from '#models/attachment'
-import AttachmentRelation from '#models/attachment_relation'
 import type AdminUser from '#models/admin_user'
-import AdminRbacService from '#services/admin_rbac_service'
 import FileInspectorService from '#services/upload/file_inspector_service'
 import StorageManager from '#services/upload/storage/storage_manager'
 import type { StorageDisk, UploadMode } from '#types/upload'
 import logger from '@adonisjs/core/services/logger'
-import db from '@adonisjs/lucid/services/db'
 import { randomUUID } from 'node:crypto'
 import { stat } from 'node:fs/promises'
 import { DateTime } from 'luxon'
@@ -18,13 +15,6 @@ interface FinalizeInput {
   mimeType: string
   expectedSize: number
   expectedHash?: string | null
-}
-
-interface BindInput {
-  attachmentIds: number[]
-  businessType: string
-  businessId: string
-  fieldName: string
 }
 
 interface DirectUploadInput {
@@ -128,11 +118,11 @@ export default class AttachmentService {
         url: stored.url,
         mimeType: stored.mimeType,
         hash: stored.hash,
-        status: 'temporary',
+        status: 'active',
         isComplete: true,
         errorMessage: null,
         lastUsedAt: now,
-        expiresAt: now.plus({ hours: uploadConfig.temporaryTtlHours }),
+        expiresAt: null,
       })
       await attachment.save()
       logger.info(
@@ -236,11 +226,11 @@ export default class AttachmentService {
       fileType: inspected.fileType,
       size: fileStat.size,
       hash: inspected.hash,
-      status: 'temporary',
+      status: 'active',
       isComplete: true,
       errorMessage: null,
       lastUsedAt: now,
-      expiresAt: now.plus({ hours: uploadConfig.temporaryTtlHours }),
+      expiresAt: null,
     })
     await attachment.save()
 
@@ -256,188 +246,12 @@ export default class AttachmentService {
     return attachment
   }
 
-  static async bind(user: AdminUser, input: BindInput) {
-    const ids = [...new Set(input.attachmentIds)]
-    const attachments = ids.length
-      ? await Attachment.query().whereIn('id', ids).whereNot('status', 'deleted')
-      : []
-    const attachmentsById = new Map(attachments.map((attachment) => [attachment.id, attachment]))
-
-    if (attachments.length !== ids.length) {
-      throw new UploadException(
-        'One or more attachments do not exist',
-        'E_ATTACHMENT_NOT_FOUND',
-        404
-      )
-    }
-    if (!user.isSuperAdmin && attachments.some((attachment) => attachment.uploaderId !== user.id)) {
-      throw new UploadException(
-        'Cannot bind another user’s attachment',
-        'E_ATTACHMENT_FORBIDDEN',
-        403
-      )
-    }
-    if (
-      attachments.some((attachment) => !attachment.isComplete || attachment.status === 'failed')
-    ) {
-      throw new UploadException('Attachment is not ready to bind', 'E_ATTACHMENT_NOT_READY')
-    }
-
-    await db.transaction(async (trx) => {
-      const previousRelations = await AttachmentRelation.query({ client: trx })
-        .where('business_type', input.businessType)
-        .where('business_id', input.businessId)
-        .where('field_name', input.fieldName)
-        .preload('attachment')
-      if (
-        !user.isSuperAdmin &&
-        previousRelations.some((relation) => relation.attachment.uploaderId !== user.id)
-      ) {
-        throw new UploadException(
-          'Cannot replace another user’s attachment binding',
-          'E_ATTACHMENT_FORBIDDEN',
-          403
-        )
-      }
-      const detachedIds = previousRelations
-        .filter((relation) => !ids.includes(relation.attachmentId))
-        .map((relation) => relation.attachmentId)
-
-      if (detachedIds.length) {
-        await AttachmentRelation.query({ client: trx })
-          .where('business_type', input.businessType)
-          .where('business_id', input.businessId)
-          .where('field_name', input.fieldName)
-          .whereIn('attachment_id', detachedIds)
-          .delete()
-
-        for (const detachedId of detachedIds) {
-          const remaining = await AttachmentRelation.query({ client: trx })
-            .where('attachment_id', detachedId)
-            .count('* as total')
-            .first()
-          if (Number(remaining?.$extras.total ?? 0) === 0) {
-            const detached = await Attachment.find(detachedId, { client: trx })
-            if (detached && detached.status !== 'deleted') {
-              detached.useTransaction(trx)
-              detached.status = 'temporary'
-              detached.boundAt = null
-              detached.lastUsedAt = DateTime.now()
-              detached.expiresAt = DateTime.now().plus({
-                hours: uploadConfig.temporaryTtlHours,
-              })
-              await detached.save()
-            }
-          }
-        }
-      }
-
-      for (const [sort, attachmentId] of ids.entries()) {
-        const attachment = attachmentsById.get(attachmentId)!
-        attachment.useTransaction(trx)
-        let relation = await AttachmentRelation.query({ client: trx })
-          .where('attachment_id', attachment.id)
-          .where('business_type', input.businessType)
-          .where('business_id', input.businessId)
-          .where('field_name', input.fieldName)
-          .first()
-        if (!relation) {
-          relation = new AttachmentRelation()
-          relation.useTransaction(trx)
-          relation.merge({
-            attachmentId: attachment.id,
-            businessType: input.businessType,
-            businessId: input.businessId,
-            fieldName: input.fieldName,
-          })
-        }
-        relation.sort = sort
-        await relation.save()
-
-        attachment.status = 'active'
-        attachment.boundAt = DateTime.now()
-        attachment.lastUsedAt = DateTime.now()
-        attachment.expiresAt = null
-        await attachment.save()
-      }
-    })
-
-    logger.info(
-      {
-        operation: 'attachments_bound',
-        userId: user.id,
-        attachmentIds: ids,
-        businessType: input.businessType,
-        businessId: input.businessId,
-        fieldName: input.fieldName,
-      },
-      'Attachments bound to business record'
-    )
-    return Promise.all(ids.map((id) => this.findAndSerialize(id)))
-  }
-
-  static async sort(
-    user: AdminUser,
-    input: Omit<BindInput, 'attachmentIds'> & { attachmentIds: number[] }
-  ) {
-    const relations = await AttachmentRelation.query()
-      .where('business_type', input.businessType)
-      .where('business_id', input.businessId)
-      .where('field_name', input.fieldName)
-      .preload('attachment')
-
-    const requestedIds = new Set(input.attachmentIds)
-    if (
-      relations.length !== requestedIds.size ||
-      relations.some((relation) => !requestedIds.has(relation.attachmentId))
-    ) {
-      throw new UploadException(
-        'Sort list does not match bound attachments',
-        'E_ATTACHMENT_SORT_INVALID'
-      )
-    }
-    if (
-      !user.isSuperAdmin &&
-      relations.some((relation) => relation.attachment.uploaderId !== user.id)
-    ) {
-      throw new UploadException(
-        'Cannot sort another user’s attachments',
-        'E_ATTACHMENT_FORBIDDEN',
-        403
-      )
-    }
-
-    await db.transaction(async (trx) => {
-      for (const [sort, attachmentId] of input.attachmentIds.entries()) {
-        await AttachmentRelation.query({ client: trx })
-          .where('attachment_id', attachmentId)
-          .where('business_type', input.businessType)
-          .where('business_id', input.businessId)
-          .where('field_name', input.fieldName)
-          .update({ sort })
-      }
-    })
-    return { attachmentIds: input.attachmentIds }
-  }
-
   static async delete(user: AdminUser | null, attachment: Attachment, system = false) {
     if (attachment.status === 'deleted') {
-      return this.serialize(attachment, 0)
+      return this.serialize(attachment)
     }
-    if (!system && (!user || !(await this.canDelete(user, attachment)))) {
+    if (!system && (!user || (!user.isSuperAdmin && attachment.uploaderId !== user.id))) {
       throw new UploadException('Cannot delete this attachment', 'E_ATTACHMENT_FORBIDDEN', 403)
-    }
-
-    const relationCount = await AttachmentRelation.query()
-      .where('attachment_id', attachment.id)
-      .count('* as total')
-      .first()
-    if (Number(relationCount?.$extras.total ?? 0) > 0) {
-      throw new UploadException(
-        'Attachment is still referenced by business data',
-        'E_ATTACHMENT_IN_USE',
-        409
-      )
     }
 
     attachment.status = 'pending_delete'
@@ -466,31 +280,18 @@ export default class AttachmentService {
       },
       'Attachment deleted'
     )
-    return this.serialize(attachment, 0)
+    return this.serialize(attachment)
   }
 
   static async findAndSerialize(id: number) {
     const attachment = await Attachment.findOrFail(id)
-    const relations = await AttachmentRelation.query()
-      .where('attachment_id', id)
-      .orderBy('sort', 'asc')
-    return {
-      ...this.serialize(attachment, relations.length),
-      references: relations.map((relation) => ({
-        businessType: relation.businessType,
-        businessId: relation.businessId,
-        fieldName: relation.fieldName,
-        sort: relation.sort,
-        createdAt: relation.createdAt,
-      })),
-    }
+    return this.serialize(attachment)
   }
 
-  static serialize(attachment: Attachment, referenceCount = 0) {
-    const protectedContentUrl =
-      attachment.status === 'deleted' ? null : `/api/v1/admin/attachments/${attachment.id}/content`
-    const contentUrl =
-      attachment.status === 'deleted' ? null : attachment.url || protectedContentUrl
+  static serialize(attachment: Attachment) {
+    const localContentUrl =
+      attachment.status === 'deleted' ? null : `/api/v1/uploads/files/${attachment.uuid}`
+    const contentUrl = attachment.status === 'deleted' ? null : attachment.url || localContentUrl
     return {
       id: attachment.id,
       uuid: attachment.uuid,
@@ -515,21 +316,12 @@ export default class AttachmentService {
       downloadUrl: contentUrl,
       progress: attachment.isComplete ? 100 : 0,
       errorMessage: attachment.errorMessage,
-      referenceCount,
       createdAt: attachment.createdAt,
       updatedAt: attachment.updatedAt,
       boundAt: attachment.boundAt,
       expiresAt: attachment.expiresAt,
       deletedAt: attachment.deletedAt,
     }
-  }
-
-  private static async canDelete(user: AdminUser, attachment: Attachment) {
-    return (
-      user.isSuperAdmin ||
-      attachment.uploaderId === user.id ||
-      (await AdminRbacService.allows(user, { permissions: ['admin.attachments.delete'] }))
-    )
   }
 
   private static objectKey(fileType: string, uuid: string, extension: string, date: DateTime) {
