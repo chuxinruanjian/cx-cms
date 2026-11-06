@@ -5,6 +5,7 @@ import network from './zh-CN/network';
 import pages from './zh-CN/pages';
 import settingDrawer from './zh-CN/settingDrawer';
 import settings from './zh-CN/settings';
+import systemConfig from './zh-CN/systemConfig';
 import tiptap from './zh-CN/tiptap';
 import uiStandard from './zh-CN/uiStandard';
 import uploader from './zh-CN/uploader';
@@ -25,4 +26,5 @@ export default {
   ...component,
   ...uiStandard,
   ...uploader,
+  ...systemConfig,
 };

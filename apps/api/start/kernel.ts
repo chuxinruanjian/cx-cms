@@ -46,6 +46,8 @@ router.use([
  * the routes or the routes group.
  */
 export const middleware = router.named({
+  userAuth: () => import('#middleware/user_auth_middleware'),
+  userLoginLimit: () => import('#middleware/user_login_limit_middleware'),
   auth: () => import('#middleware/auth_middleware'),
   adminRbac: () => import('#middleware/admin_rbac_middleware'),
 })

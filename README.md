@@ -175,6 +175,24 @@ npm run build:admin  # 后台构建到 apps/api/public/admin
 npm run build:api    # API 构建到 apps/api/build
 ```
 
+## 系统配置
+
+后台 `/admin/system-config` 使用“公开配置 / 内部配置”两个 Tabs 管理 `system_configs`。
+首次启用需要执行 `npm run db:migrate` 和 `npm run db:seed`，分别建立表结构并初始化
+`admin.system_configs.view/create/update/delete` 权限。普通管理员需要分配相应权限。
+
+- 每条配置包含名称、唯一小写配置键、类型、字符串值及说明；值最长 8000 字符。
+- 公开配置通过 `GET /api/v1/system-configs/public` 返回键值对象，例如 `site.name`、`site.logo`。
+  Logo 使用可长期访问的图片 URL，此入口不会改变现有后台 `.env` 品牌配置。
+- 内部值使用现有 `APP_KEY` 对应的 AES-GCM 加密器保存并绑定配置键，后台只显示“已设置”。
+  编辑时留空保留原值，输入新值则替换；配置键和类型创建后固定。
+- 服务端通过 `SystemConfigService.get('provider.key')` 读取内部值。不要把这个结果直接返回给浏览器。
+  请妥善保管 `APP_KEY`，丢失或直接更换它会使已有内部配置无法解密。
+- 证书继续保存在 `storage/certificates/payment` 等私有目录，内部配置只保存文件路径；
+  不通过公开文件上传接口上传证书。既有 SMS、七牛等环境变量不会自动改由配置表读取。
+
+管理接口位于 `/api/v1/admin/system-configs`，支持按类型和关键字分页查询、新增、更新及删除。
+
 ## 统一文件上传
 
 项目内置统一文件上传系统，默认使用本地存储，并可切换七牛云。支持普通上传、自动分片、并发与重试、
@@ -406,3 +424,10 @@ RBAC 管理接口位于 `/api/v1/admin/users`、`/api/v1/admin/roles` 和
 `adminRbac` 中间件校验 `admin.users.*`、`admin.roles.*` 或
 `admin.permissions.*` 权限。`is_super_admin=true` 是明确的超级管理员
 旁路，首个超级管理员由 `npm run db:seed` 创建。
+
+### 前台用户认证
+
+提供用户名密码、小程序和公众号授权登录；用户拥有一次改名机会。用户表含手机号、
+昵称及头像，微信账户设置新密码后才开放密码登录。公众号获取授权资料，小程序
+单独授权头像昵称并通过共享上传接口保存头像。配置、接口及接入流程见
+[前台用户认证](docs/user-auth.md)，服务端变量见 `apps/api/.env.example`。

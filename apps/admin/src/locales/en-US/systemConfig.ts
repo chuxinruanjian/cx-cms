@@ -1,0 +1,37 @@
+export default {
+  'systemConfig.title': 'System Configuration',
+  'systemConfig.public': 'Public configurations',
+  'systemConfig.internal': 'Internal configurations',
+  'systemConfig.name': 'Configuration name',
+  'systemConfig.key': 'Configuration key',
+  'systemConfig.value': 'Value',
+  'systemConfig.description': 'Description',
+  'systemConfig.updatedAt': 'Updated at',
+  'systemConfig.actions': 'Actions',
+  'systemConfig.create': 'Add configuration',
+  'systemConfig.edit': 'Edit',
+  'systemConfig.delete': 'Delete',
+  'systemConfig.deleteTitle': 'Delete this configuration?',
+  'systemConfig.cancel': 'Cancel',
+  'systemConfig.save': 'Save',
+  'systemConfig.saved': 'Configuration saved',
+  'systemConfig.deleted': 'Configuration deleted',
+  'systemConfig.configured': 'Configured',
+  'systemConfig.notConfigured': 'Not configured',
+  'systemConfig.keyword': 'Name / configuration key',
+  'systemConfig.searchPlaceholder': 'Search by name or configuration key',
+  'systemConfig.reset': 'Reset',
+  'systemConfig.search': 'Search',
+  'systemConfig.nameRequired': 'Enter a configuration name',
+  'systemConfig.keyRequired': 'Enter a configuration key',
+  'systemConfig.valueRequired': 'Enter a value',
+  'systemConfig.replaceValue': 'Replace value',
+  'systemConfig.keyHint':
+    'Use lowercase letters, numbers, dots, underscores or hyphens, e.g. site.name. The key cannot be changed after creation.',
+  'systemConfig.publicHint':
+    'This value is available to all visitors. For logos and other images, enter a durable URL.',
+  'systemConfig.internalHint':
+    'For server use only. Stored encrypted and never returned. For certificates, enter a private file path, not a public upload URL.',
+  'systemConfig.internalEditHint':
+    'Leave blank to keep the existing value, or enter a replacement. Use private file paths for certificates.',
+};

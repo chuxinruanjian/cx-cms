@@ -9,3 +9,4 @@
 /// <reference path="../../config/logger.ts" />
 /// <reference path="../../config/storage.ts" />
 /// <reference path="../../config/upload.ts" />
+/// <reference path="../../config/user_auth.ts" />

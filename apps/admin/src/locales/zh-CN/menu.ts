@@ -52,6 +52,7 @@ export default {
   'menu.chatbot': 'AI 助手',
   'menu.ui-standard': '界面规范',
   'menu.ui-standard.list': '标准页面蓝本',
+  'menu.system-config': '系统配置',
   'menu.uploads': '文件上传',
   'menu.uploads.avatar': '头像上传',
   'menu.uploads.square': '方形图片',

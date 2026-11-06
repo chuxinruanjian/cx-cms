@@ -5,6 +5,7 @@ import network from './en-US/network';
 import pages from './en-US/pages';
 import settingDrawer from './en-US/settingDrawer';
 import settings from './en-US/settings';
+import systemConfig from './en-US/systemConfig';
 import tiptap from './en-US/tiptap';
 import uiStandard from './en-US/uiStandard';
 import uploader from './en-US/uploader';
@@ -25,4 +26,5 @@ export default {
   ...pages,
   ...uiStandard,
   ...uploader,
+  ...systemConfig,
 };

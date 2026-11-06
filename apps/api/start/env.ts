@@ -80,6 +80,16 @@ export default await Env.create(new URL('../', import.meta.url), {
   ALIYUN_SMS_PASSWORD_RESET_TEMPLATE_CODE: Env.schema.string.optional(),
   ALIYUN_SMS_ENDPOINT: Env.schema.string.optional(),
 
+  // User WeChat login (server-only credentials)
+  WECHAT_MINI_APP_ID: Env.schema.string.optional(),
+  WECHAT_MINI_APP_SECRET: Env.schema.secret.optional(),
+  WECHAT_MINI_OPEN_PLATFORM_ID: Env.schema.string.optional(),
+  WECHAT_OFFICIAL_APP_ID: Env.schema.string.optional(),
+  WECHAT_OFFICIAL_APP_SECRET: Env.schema.secret.optional(),
+  WECHAT_OFFICIAL_OPEN_PLATFORM_ID: Env.schema.string.optional(),
+  WECHAT_OFFICIAL_REDIRECT_URI: Env.schema.string.optional({ format: 'url', tld: false }),
+  WECHAT_OFFICIAL_SCOPE: Env.schema.enum.optional(['snsapi_base', 'snsapi_userinfo'] as const),
+
   // Session
   SESSION_DRIVER: Env.schema.enum(['cookie', 'memory', 'database'] as const),
 })

@@ -8,19 +8,17 @@ import {
   normalUploadValidator,
   uploadChunkValidator,
 } from '#validators/admin_upload'
-import type AdminUser from '#models/admin_user'
 import type { UploadActor } from '#types/upload'
 import type { HttpContext } from '@adonisjs/core/http'
 
-const adminActor = (user: AdminUser): UploadActor => ({
-  type: 'admin',
-  id: user.id,
-  isSuperAdmin: user.isSuperAdmin,
-})
-
 export default class UploadsController {
+  protected actor(auth: HttpContext['auth']): UploadActor {
+    const user = auth.use('api').getUserOrFail()
+    return { type: 'admin', id: user.id, isSuperAdmin: user.isSuperAdmin }
+  }
+
   async store({ auth, request, response }: HttpContext) {
-    const user = adminActor(auth.getUserOrFail())
+    const user = this.actor(auth)
     const { uploadToken } = await request.validateUsing(normalUploadValidator)
     const file = request.file('file')
     if (!file) {
@@ -49,19 +47,19 @@ export default class UploadsController {
   }
 
   async initialize({ auth, request, response }: HttpContext) {
-    const user = adminActor(auth.getUserOrFail())
+    const user = this.actor(auth)
     const payload = await request.validateUsing(initializeUploadValidator)
     return response.created(await UploadSessionService.initialize(user, payload))
   }
 
   async initializeDirect({ auth, request, response }: HttpContext) {
-    const user = adminActor(auth.getUserOrFail())
+    const user = this.actor(auth)
     const payload = await request.validateUsing(initializeUploadValidator)
     return response.created(await AttachmentService.initializeDirect(user, payload))
   }
 
   async completeDirect({ auth, params, request }: HttpContext) {
-    const user = adminActor(auth.getUserOrFail())
+    const user = this.actor(auth)
     const { uploadToken } = await request.validateUsing(completeDirectUploadValidator)
     const attachment = await AttachmentService.completeDirect(
       user,
@@ -72,7 +70,7 @@ export default class UploadsController {
   }
 
   async storeChunk({ auth, params, request }: HttpContext) {
-    const user = adminActor(auth.getUserOrFail())
+    const user = this.actor(auth)
     const payload = await request.validateUsing(uploadChunkValidator)
     const chunk = request.file('chunk')
     if (!chunk?.isValid || !chunk.tmpPath) {
@@ -86,21 +84,18 @@ export default class UploadsController {
   }
 
   async show({ auth, params }: HttpContext) {
-    return UploadSessionService.status(adminActor(auth.getUserOrFail()), params.uploadId)
+    return UploadSessionService.status(this.actor(auth), params.uploadId)
   }
 
   async complete({ auth, params }: HttpContext) {
-    return UploadSessionService.complete(adminActor(auth.getUserOrFail()), params.uploadId)
+    return UploadSessionService.complete(this.actor(auth), params.uploadId)
   }
 
   async abort({ auth, params }: HttpContext) {
-    return UploadSessionService.abort(adminActor(auth.getUserOrFail()), params.uploadId)
+    return UploadSessionService.abort(this.actor(auth), params.uploadId)
   }
 
   async destroy({ auth, params }: HttpContext) {
-    return AttachmentService.delete(
-      adminActor(auth.getUserOrFail()),
-      await Attachment.findOrFail(params.id)
-    )
+    return AttachmentService.delete(this.actor(auth), await Attachment.findOrFail(params.id))
   }
 }

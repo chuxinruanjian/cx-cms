@@ -1,9 +1,7 @@
 import uploadConfig from '#config/upload'
-import type { HttpContext } from '@adonisjs/core/http'
 
 export default class UploadConfigController {
-  async show({ auth }: HttpContext) {
-    auth.getUserOrFail()
+  async show() {
     return {
       allowedExtensions: uploadConfig.allowedExtensions,
       maxBytes: uploadConfig.maxBytes,

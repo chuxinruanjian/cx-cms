@@ -101,11 +101,11 @@ export default class AccessTokensController {
   }
 
   async show({ auth }: HttpContext) {
-    return AdminAuthService.serializeUser(auth.getUserOrFail())
+    return AdminAuthService.serializeUser(auth.use('api').getUserOrFail())
   }
 
   async update({ auth, request, response }: HttpContext) {
-    const user = auth.getUserOrFail()
+    const user = auth.use('api').getUserOrFail()
     const profile = await request.validateUsing(updateAdminProfileValidator)
     const emailOwner = await AdminUser.query()
       .where('email', profile.email)
@@ -124,7 +124,7 @@ export default class AccessTokensController {
   }
 
   async destroy({ auth }: HttpContext) {
-    const user = auth.getUserOrFail()
+    const user = auth.use('api').getUserOrFail()
     if (user.currentAccessToken) {
       await AdminUser.accessTokens.delete(user, user.currentAccessToken.identifier)
     }

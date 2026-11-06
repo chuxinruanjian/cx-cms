@@ -16,6 +16,10 @@ export default function access(
 
   return {
     canAdmin: Boolean(currentUser),
+    canViewSystemConfig: hasPermission('admin.system_configs.view'),
+    canCreateSystemConfig: hasPermission('admin.system_configs.create'),
+    canUpdateSystemConfig: hasPermission('admin.system_configs.update'),
+    canDeleteSystemConfig: hasPermission('admin.system_configs.delete'),
     canManageFiles: hasPermission('admin.uploads.create'),
     canUploadFiles: hasPermission('admin.uploads.create'),
     hasRole: (role: string) =>

@@ -67,6 +67,13 @@ export default [
     ],
   },
   {
+    path: '/system-config',
+    name: 'system-config',
+    icon: 'setting',
+    access: 'canViewSystemConfig',
+    component: './system-config',
+  },
+  {
     path: '/dashboard',
     name: 'dashboard',
     icon: 'dashboard',

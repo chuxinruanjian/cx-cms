@@ -52,6 +52,7 @@ export default {
   'menu.chatbot': 'AI Assistant',
   'menu.ui-standard': 'UI Standards',
   'menu.ui-standard.list': 'Standard Page Blueprint',
+  'menu.system-config': 'System Configuration',
   'menu.uploads': 'File Uploads',
   'menu.uploads.avatar': 'Avatar',
   'menu.uploads.square': 'Square Image',

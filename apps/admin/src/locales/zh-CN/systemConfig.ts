@@ -1,0 +1,37 @@
+export default {
+  'systemConfig.title': '系统配置',
+  'systemConfig.public': '公开配置',
+  'systemConfig.internal': '内部配置',
+  'systemConfig.name': '配置名称',
+  'systemConfig.key': '配置键',
+  'systemConfig.value': '配置值',
+  'systemConfig.description': '说明',
+  'systemConfig.updatedAt': '更新时间',
+  'systemConfig.actions': '操作',
+  'systemConfig.create': '新增配置',
+  'systemConfig.edit': '编辑',
+  'systemConfig.delete': '删除',
+  'systemConfig.deleteTitle': '确认删除此配置？',
+  'systemConfig.cancel': '取消',
+  'systemConfig.save': '保存',
+  'systemConfig.saved': '配置已保存',
+  'systemConfig.deleted': '配置已删除',
+  'systemConfig.configured': '已设置',
+  'systemConfig.notConfigured': '未设置',
+  'systemConfig.keyword': '名称 / 配置键',
+  'systemConfig.searchPlaceholder': '请输入配置名称或配置键',
+  'systemConfig.reset': '重置',
+  'systemConfig.search': '查询',
+  'systemConfig.nameRequired': '请输入配置名称',
+  'systemConfig.keyRequired': '请输入配置键',
+  'systemConfig.valueRequired': '请输入配置值',
+  'systemConfig.replaceValue': '替换配置值',
+  'systemConfig.keyHint':
+    '使用小写字母、数字及点、下划线或连字符，例如 site.name；创建后不可修改。',
+  'systemConfig.publicHint':
+    '此值将公开给所有访问者。Logo 等图片请填写可长期访问的 URL。',
+  'systemConfig.internalHint':
+    '仅供服务端使用，加密保存且不会回显。证书请填写私有目录中的文件路径，不要使用公开上传地址。',
+  'systemConfig.internalEditHint':
+    '留空保留原值，填写则替换。证书请使用私有文件路径。',
+};

@@ -2,8 +2,38 @@
 import type { routes } from './index.ts'
 
 export interface ApiDefinition {
+  systemConfigs: {
+    publicIndex: typeof routes['system_configs.public_index']
+  }
   uploadedFiles: {
     show: typeof routes['uploaded_files.show']
+  }
+  user: {
+    userAuth: {
+      login: typeof routes['user.user_auth.login']
+      mini: typeof routes['user.user_auth.mini']
+      authorize: typeof routes['user.user_auth.authorize']
+      official: typeof routes['user.user_auth.official']
+      show: typeof routes['user.user_auth.show']
+      update: typeof routes['user.user_auth.update']
+      rename: typeof routes['user.user_auth.rename']
+      password: typeof routes['user.user_auth.password']
+      logout: typeof routes['user.user_auth.logout']
+    }
+    uploadConfig: {
+      show: typeof routes['user.upload_config.show']
+    }
+    userUploads: {
+      store: typeof routes['user.user_uploads.store']
+      initialize: typeof routes['user.user_uploads.initialize']
+      initializeDirect: typeof routes['user.user_uploads.initialize_direct']
+      completeDirect: typeof routes['user.user_uploads.complete_direct']
+      storeChunk: typeof routes['user.user_uploads.store_chunk']
+      show: typeof routes['user.user_uploads.show']
+      complete: typeof routes['user.user_uploads.complete']
+      abort: typeof routes['user.user_uploads.abort']
+      destroy: typeof routes['user.user_uploads.destroy']
+    }
   }
   admin: {
     auth: {
@@ -42,6 +72,12 @@ export interface ApiDefinition {
       store: typeof routes['admin.admin_permissions.store']
       update: typeof routes['admin.admin_permissions.update']
       destroy: typeof routes['admin.admin_permissions.destroy']
+    }
+    systemConfigs: {
+      index: typeof routes['admin.system_configs.index']
+      store: typeof routes['admin.system_configs.store']
+      update: typeof routes['admin.system_configs.update']
+      destroy: typeof routes['admin.system_configs.destroy']
     }
     uploadConfig: {
       show: typeof routes['admin.upload_config.show']

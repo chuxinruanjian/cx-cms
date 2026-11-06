@@ -313,6 +313,36 @@ export class SmsCodeSchema extends BaseModel {
   declare usedAt: DateTime | null
 }
 
+export class SystemConfigSchema extends BaseModel {
+  static $columns = [
+    'configKey',
+    'createdAt',
+    'description',
+    'id',
+    'name',
+    'type',
+    'updatedAt',
+    'value',
+  ] as const
+  $columns = SystemConfigSchema.$columns
+  @column()
+  declare configKey: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare description: string | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare name: string
+  @column()
+  declare type: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare value: string
+}
+
 export class UploadChunkSchema extends BaseModel {
   static $columns = [
     'chunkIndex',
@@ -407,4 +437,162 @@ export class UploadSessionSchema extends BaseModel {
   declare uploaderId: number
   @column()
   declare uploaderType: string
+}
+
+export class UserAccessTokenSchema extends BaseModel {
+  static $columns = [
+    'abilities',
+    'createdAt',
+    'expiresAt',
+    'hash',
+    'id',
+    'lastUsedAt',
+    'name',
+    'tokenableId',
+    'type',
+    'updatedAt',
+  ] as const
+  $columns = UserAccessTokenSchema.$columns
+  @column()
+  declare abilities: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column.dateTime()
+  declare expiresAt: DateTime | null
+  @column()
+  declare hash: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column.dateTime()
+  declare lastUsedAt: DateTime | null
+  @column()
+  declare name: string | null
+  @column()
+  declare tokenableId: number
+  @column()
+  declare type: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class UserAuthLimitSchema extends BaseModel {
+  static $columns = ['attempts', 'expiresAt', 'keyHash'] as const
+  $columns = UserAuthLimitSchema.$columns
+  @column()
+  declare attempts: number
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column({ isPrimary: true })
+  declare keyHash: string
+}
+
+export class UserOauthStateSchema extends BaseModel {
+  static $columns = [
+    'appId',
+    'browserHash',
+    'createdAt',
+    'expiresAt',
+    'id',
+    'stateHash',
+    'usedAt',
+  ] as const
+  $columns = UserOauthStateSchema.$columns
+  @column()
+  declare appId: string
+  @column()
+  declare browserHash: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare stateHash: string
+  @column.dateTime()
+  declare usedAt: DateTime | null
+}
+
+export class UserWechatAccountSchema extends BaseModel {
+  static $columns = [
+    'appId',
+    'createdAt',
+    'id',
+    'identityKey',
+    'openId',
+    'provider',
+    'unionId',
+    'updatedAt',
+    'userId',
+  ] as const
+  $columns = UserWechatAccountSchema.$columns
+  @column()
+  declare appId: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare identityKey: string
+  @column()
+  declare openId: string
+  @column()
+  declare provider: string
+  @column()
+  declare unionId: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number
+}
+
+export class UserSchema extends BaseModel {
+  static $columns = [
+    'avatar',
+    'createdAt',
+    'id',
+    'lastLoginAt',
+    'mobile',
+    'nickname',
+    'password',
+    'passwordLoginEnabled',
+    'status',
+    'unionId',
+    'unionKey',
+    'unionScope',
+    'updatedAt',
+    'username',
+    'usernameChangedAt',
+  ] as const
+  $columns = UserSchema.$columns
+  @column()
+  declare avatar: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column.dateTime()
+  declare lastLoginAt: DateTime | null
+  @column()
+  declare mobile: string | null
+  @column()
+  declare nickname: string | null
+  @column({ serializeAs: null })
+  declare password: string
+  @column()
+  declare passwordLoginEnabled: boolean
+  @column()
+  declare status: boolean
+  @column()
+  declare unionId: string | null
+  @column()
+  declare unionKey: string | null
+  @column()
+  declare unionScope: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare username: string
+  @column.dateTime()
+  declare usernameChangedAt: DateTime | null
 }

@@ -12,11 +12,14 @@ import type { HttpContext } from '@adonisjs/core/http'
 import app from '@adonisjs/core/services/app'
 import router from '@adonisjs/core/services/router'
 
+const UserUploadsController = () => import('#controllers/user_uploads_controller')
+const UserAuthController = () => import('#controllers/user_auth_controller')
 const AccessTokensController = () => import('#controllers/access_tokens_controller')
 const AdminSecurityController = () => import('#controllers/admin_security_controller')
 const AdminUsersController = () => import('#controllers/admin_users_controller')
 const AdminRolesController = () => import('#controllers/admin_roles_controller')
 const AdminPermissionsController = () => import('#controllers/admin_permissions_controller')
+const SystemConfigsController = () => import('#controllers/system_configs_controller')
 const UploadConfigController = () => import('#controllers/upload_config_controller')
 const UploadsController = () => import('#controllers/uploads_controller')
 const UploadedFilesController = () => import('#controllers/uploaded_files_controller')
@@ -33,7 +36,50 @@ router.get('/', () => {
 
 router.get('/admin/*', serveSpa('admin/index.html', 'Admin application is not built'))
 router.get('/h5/*', serveSpa('h5/index.html', 'H5 application is not built'))
+router.get('/api/v1/system-configs/public', [SystemConfigsController, 'publicIndex'])
 router.get('/api/v1/uploads/files/:uuid', [UploadedFilesController, 'show'])
+
+router
+  .group(() => {
+    router
+      .post('auth/login', [UserAuthController, 'login'])
+      .use(middleware.userLoginLimit({ scope: 'password' }))
+    router
+      .post('auth/wechat/mini-program', [UserAuthController, 'mini'])
+      .use(middleware.userLoginLimit({ scope: 'wechat' }))
+    router
+      .get('auth/wechat/official-account/authorize', [UserAuthController, 'authorize'])
+      .use(middleware.userLoginLimit({ scope: 'oauthAuthorize' }))
+    router
+      .post('auth/wechat/official-account', [UserAuthController, 'official'])
+      .use(middleware.userLoginLimit({ scope: 'wechat' }))
+    router
+      .group(() => {
+        router.get('upload-config', [UploadConfigController, 'show'])
+        router.post('uploads', [UserUploadsController, 'store'])
+        router.post('uploads/init', [UserUploadsController, 'initialize'])
+        router.post('uploads/direct/init', [UserUploadsController, 'initializeDirect'])
+        router.post('uploads/direct/:attachmentId/complete', [
+          UserUploadsController,
+          'completeDirect',
+        ])
+        router.post('uploads/:uploadId/chunks', [UserUploadsController, 'storeChunk'])
+        router.get('uploads/:uploadId', [UserUploadsController, 'show'])
+        router.post('uploads/:uploadId/complete', [UserUploadsController, 'complete'])
+        router.post('uploads/:uploadId/abort', [UserUploadsController, 'abort'])
+        router.delete('uploads/files/:id', [UserUploadsController, 'destroy'])
+        router.get('auth/me', [UserAuthController, 'show'])
+        router.patch('auth/me', [UserAuthController, 'update'])
+        router.patch('auth/username', [UserAuthController, 'rename'])
+        router
+          .put('auth/password', [UserAuthController, 'password'])
+          .use(middleware.userLoginLimit({ scope: 'password' }))
+        router.delete('auth/logout', [UserAuthController, 'logout'])
+      })
+      .use(middleware.userAuth())
+  })
+  .prefix('/api/v1')
+  .as('user')
 
 router
   .group(() => {
@@ -100,6 +146,19 @@ router
         router
           .delete('permissions/:id', [AdminPermissionsController, 'destroy'])
           .use(middleware.adminRbac({ permissions: ['admin.permissions.delete'] }))
+
+        router
+          .get('system-configs', [SystemConfigsController, 'index'])
+          .use(middleware.adminRbac({ permissions: ['admin.system_configs.view'] }))
+        router
+          .post('system-configs', [SystemConfigsController, 'store'])
+          .use(middleware.adminRbac({ permissions: ['admin.system_configs.create'] }))
+        router
+          .patch('system-configs/:id', [SystemConfigsController, 'update'])
+          .use(middleware.adminRbac({ permissions: ['admin.system_configs.update'] }))
+        router
+          .delete('system-configs/:id', [SystemConfigsController, 'destroy'])
+          .use(middleware.adminRbac({ permissions: ['admin.system_configs.delete'] }))
 
         router
           .get('upload-config', [UploadConfigController, 'show'])

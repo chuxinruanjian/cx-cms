@@ -6,11 +6,131 @@ import type { ApiDefinition } from './tree.d.ts'
 const placeholder: any = {}
 
 const routes = {
+  'system_configs.public_index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/system-configs/public',
+    tokens: [{"old":"/api/v1/system-configs/public","type":0,"val":"api","end":""},{"old":"/api/v1/system-configs/public","type":0,"val":"v1","end":""},{"old":"/api/v1/system-configs/public","type":0,"val":"system-configs","end":""},{"old":"/api/v1/system-configs/public","type":0,"val":"public","end":""}],
+    types: placeholder as Registry['system_configs.public_index']['types'],
+  },
   'uploaded_files.show': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/uploads/files/:uuid',
     tokens: [{"old":"/api/v1/uploads/files/:uuid","type":0,"val":"api","end":""},{"old":"/api/v1/uploads/files/:uuid","type":0,"val":"v1","end":""},{"old":"/api/v1/uploads/files/:uuid","type":0,"val":"uploads","end":""},{"old":"/api/v1/uploads/files/:uuid","type":0,"val":"files","end":""},{"old":"/api/v1/uploads/files/:uuid","type":1,"val":"uuid","end":""}],
     types: placeholder as Registry['uploaded_files.show']['types'],
+  },
+  'user.user_auth.login': {
+    methods: ["POST"],
+    pattern: '/api/v1/auth/login',
+    tokens: [{"old":"/api/v1/auth/login","type":0,"val":"api","end":""},{"old":"/api/v1/auth/login","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/login","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/login","type":0,"val":"login","end":""}],
+    types: placeholder as Registry['user.user_auth.login']['types'],
+  },
+  'user.user_auth.mini': {
+    methods: ["POST"],
+    pattern: '/api/v1/auth/wechat/mini-program',
+    tokens: [{"old":"/api/v1/auth/wechat/mini-program","type":0,"val":"api","end":""},{"old":"/api/v1/auth/wechat/mini-program","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/wechat/mini-program","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/wechat/mini-program","type":0,"val":"wechat","end":""},{"old":"/api/v1/auth/wechat/mini-program","type":0,"val":"mini-program","end":""}],
+    types: placeholder as Registry['user.user_auth.mini']['types'],
+  },
+  'user.user_auth.authorize': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/auth/wechat/official-account/authorize',
+    tokens: [{"old":"/api/v1/auth/wechat/official-account/authorize","type":0,"val":"api","end":""},{"old":"/api/v1/auth/wechat/official-account/authorize","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/wechat/official-account/authorize","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/wechat/official-account/authorize","type":0,"val":"wechat","end":""},{"old":"/api/v1/auth/wechat/official-account/authorize","type":0,"val":"official-account","end":""},{"old":"/api/v1/auth/wechat/official-account/authorize","type":0,"val":"authorize","end":""}],
+    types: placeholder as Registry['user.user_auth.authorize']['types'],
+  },
+  'user.user_auth.official': {
+    methods: ["POST"],
+    pattern: '/api/v1/auth/wechat/official-account',
+    tokens: [{"old":"/api/v1/auth/wechat/official-account","type":0,"val":"api","end":""},{"old":"/api/v1/auth/wechat/official-account","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/wechat/official-account","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/wechat/official-account","type":0,"val":"wechat","end":""},{"old":"/api/v1/auth/wechat/official-account","type":0,"val":"official-account","end":""}],
+    types: placeholder as Registry['user.user_auth.official']['types'],
+  },
+  'user.upload_config.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/upload-config',
+    tokens: [{"old":"/api/v1/upload-config","type":0,"val":"api","end":""},{"old":"/api/v1/upload-config","type":0,"val":"v1","end":""},{"old":"/api/v1/upload-config","type":0,"val":"upload-config","end":""}],
+    types: placeholder as Registry['user.upload_config.show']['types'],
+  },
+  'user.user_uploads.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/uploads',
+    tokens: [{"old":"/api/v1/uploads","type":0,"val":"api","end":""},{"old":"/api/v1/uploads","type":0,"val":"v1","end":""},{"old":"/api/v1/uploads","type":0,"val":"uploads","end":""}],
+    types: placeholder as Registry['user.user_uploads.store']['types'],
+  },
+  'user.user_uploads.initialize': {
+    methods: ["POST"],
+    pattern: '/api/v1/uploads/init',
+    tokens: [{"old":"/api/v1/uploads/init","type":0,"val":"api","end":""},{"old":"/api/v1/uploads/init","type":0,"val":"v1","end":""},{"old":"/api/v1/uploads/init","type":0,"val":"uploads","end":""},{"old":"/api/v1/uploads/init","type":0,"val":"init","end":""}],
+    types: placeholder as Registry['user.user_uploads.initialize']['types'],
+  },
+  'user.user_uploads.initialize_direct': {
+    methods: ["POST"],
+    pattern: '/api/v1/uploads/direct/init',
+    tokens: [{"old":"/api/v1/uploads/direct/init","type":0,"val":"api","end":""},{"old":"/api/v1/uploads/direct/init","type":0,"val":"v1","end":""},{"old":"/api/v1/uploads/direct/init","type":0,"val":"uploads","end":""},{"old":"/api/v1/uploads/direct/init","type":0,"val":"direct","end":""},{"old":"/api/v1/uploads/direct/init","type":0,"val":"init","end":""}],
+    types: placeholder as Registry['user.user_uploads.initialize_direct']['types'],
+  },
+  'user.user_uploads.complete_direct': {
+    methods: ["POST"],
+    pattern: '/api/v1/uploads/direct/:attachmentId/complete',
+    tokens: [{"old":"/api/v1/uploads/direct/:attachmentId/complete","type":0,"val":"api","end":""},{"old":"/api/v1/uploads/direct/:attachmentId/complete","type":0,"val":"v1","end":""},{"old":"/api/v1/uploads/direct/:attachmentId/complete","type":0,"val":"uploads","end":""},{"old":"/api/v1/uploads/direct/:attachmentId/complete","type":0,"val":"direct","end":""},{"old":"/api/v1/uploads/direct/:attachmentId/complete","type":1,"val":"attachmentId","end":""},{"old":"/api/v1/uploads/direct/:attachmentId/complete","type":0,"val":"complete","end":""}],
+    types: placeholder as Registry['user.user_uploads.complete_direct']['types'],
+  },
+  'user.user_uploads.store_chunk': {
+    methods: ["POST"],
+    pattern: '/api/v1/uploads/:uploadId/chunks',
+    tokens: [{"old":"/api/v1/uploads/:uploadId/chunks","type":0,"val":"api","end":""},{"old":"/api/v1/uploads/:uploadId/chunks","type":0,"val":"v1","end":""},{"old":"/api/v1/uploads/:uploadId/chunks","type":0,"val":"uploads","end":""},{"old":"/api/v1/uploads/:uploadId/chunks","type":1,"val":"uploadId","end":""},{"old":"/api/v1/uploads/:uploadId/chunks","type":0,"val":"chunks","end":""}],
+    types: placeholder as Registry['user.user_uploads.store_chunk']['types'],
+  },
+  'user.user_uploads.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/uploads/:uploadId',
+    tokens: [{"old":"/api/v1/uploads/:uploadId","type":0,"val":"api","end":""},{"old":"/api/v1/uploads/:uploadId","type":0,"val":"v1","end":""},{"old":"/api/v1/uploads/:uploadId","type":0,"val":"uploads","end":""},{"old":"/api/v1/uploads/:uploadId","type":1,"val":"uploadId","end":""}],
+    types: placeholder as Registry['user.user_uploads.show']['types'],
+  },
+  'user.user_uploads.complete': {
+    methods: ["POST"],
+    pattern: '/api/v1/uploads/:uploadId/complete',
+    tokens: [{"old":"/api/v1/uploads/:uploadId/complete","type":0,"val":"api","end":""},{"old":"/api/v1/uploads/:uploadId/complete","type":0,"val":"v1","end":""},{"old":"/api/v1/uploads/:uploadId/complete","type":0,"val":"uploads","end":""},{"old":"/api/v1/uploads/:uploadId/complete","type":1,"val":"uploadId","end":""},{"old":"/api/v1/uploads/:uploadId/complete","type":0,"val":"complete","end":""}],
+    types: placeholder as Registry['user.user_uploads.complete']['types'],
+  },
+  'user.user_uploads.abort': {
+    methods: ["POST"],
+    pattern: '/api/v1/uploads/:uploadId/abort',
+    tokens: [{"old":"/api/v1/uploads/:uploadId/abort","type":0,"val":"api","end":""},{"old":"/api/v1/uploads/:uploadId/abort","type":0,"val":"v1","end":""},{"old":"/api/v1/uploads/:uploadId/abort","type":0,"val":"uploads","end":""},{"old":"/api/v1/uploads/:uploadId/abort","type":1,"val":"uploadId","end":""},{"old":"/api/v1/uploads/:uploadId/abort","type":0,"val":"abort","end":""}],
+    types: placeholder as Registry['user.user_uploads.abort']['types'],
+  },
+  'user.user_uploads.destroy': {
+    methods: ["DELETE"],
+    pattern: '/api/v1/uploads/files/:id',
+    tokens: [{"old":"/api/v1/uploads/files/:id","type":0,"val":"api","end":""},{"old":"/api/v1/uploads/files/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/uploads/files/:id","type":0,"val":"uploads","end":""},{"old":"/api/v1/uploads/files/:id","type":0,"val":"files","end":""},{"old":"/api/v1/uploads/files/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['user.user_uploads.destroy']['types'],
+  },
+  'user.user_auth.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/auth/me',
+    tokens: [{"old":"/api/v1/auth/me","type":0,"val":"api","end":""},{"old":"/api/v1/auth/me","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/me","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/me","type":0,"val":"me","end":""}],
+    types: placeholder as Registry['user.user_auth.show']['types'],
+  },
+  'user.user_auth.update': {
+    methods: ["PATCH"],
+    pattern: '/api/v1/auth/me',
+    tokens: [{"old":"/api/v1/auth/me","type":0,"val":"api","end":""},{"old":"/api/v1/auth/me","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/me","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/me","type":0,"val":"me","end":""}],
+    types: placeholder as Registry['user.user_auth.update']['types'],
+  },
+  'user.user_auth.rename': {
+    methods: ["PATCH"],
+    pattern: '/api/v1/auth/username',
+    tokens: [{"old":"/api/v1/auth/username","type":0,"val":"api","end":""},{"old":"/api/v1/auth/username","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/username","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/username","type":0,"val":"username","end":""}],
+    types: placeholder as Registry['user.user_auth.rename']['types'],
+  },
+  'user.user_auth.password': {
+    methods: ["PUT"],
+    pattern: '/api/v1/auth/password',
+    tokens: [{"old":"/api/v1/auth/password","type":0,"val":"api","end":""},{"old":"/api/v1/auth/password","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/password","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/password","type":0,"val":"password","end":""}],
+    types: placeholder as Registry['user.user_auth.password']['types'],
+  },
+  'user.user_auth.logout': {
+    methods: ["DELETE"],
+    pattern: '/api/v1/auth/logout',
+    tokens: [{"old":"/api/v1/auth/logout","type":0,"val":"api","end":""},{"old":"/api/v1/auth/logout","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/logout","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/logout","type":0,"val":"logout","end":""}],
+    types: placeholder as Registry['user.user_auth.logout']['types'],
   },
   'admin.auth.login': {
     methods: ["POST"],
@@ -149,6 +269,30 @@ const routes = {
     pattern: '/api/v1/admin/permissions/:id',
     tokens: [{"old":"/api/v1/admin/permissions/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/permissions/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/permissions/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/permissions/:id","type":0,"val":"permissions","end":""},{"old":"/api/v1/admin/permissions/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['admin.admin_permissions.destroy']['types'],
+  },
+  'admin.system_configs.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/system-configs',
+    tokens: [{"old":"/api/v1/admin/system-configs","type":0,"val":"api","end":""},{"old":"/api/v1/admin/system-configs","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/system-configs","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/system-configs","type":0,"val":"system-configs","end":""}],
+    types: placeholder as Registry['admin.system_configs.index']['types'],
+  },
+  'admin.system_configs.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/system-configs',
+    tokens: [{"old":"/api/v1/admin/system-configs","type":0,"val":"api","end":""},{"old":"/api/v1/admin/system-configs","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/system-configs","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/system-configs","type":0,"val":"system-configs","end":""}],
+    types: placeholder as Registry['admin.system_configs.store']['types'],
+  },
+  'admin.system_configs.update': {
+    methods: ["PATCH"],
+    pattern: '/api/v1/admin/system-configs/:id',
+    tokens: [{"old":"/api/v1/admin/system-configs/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/system-configs/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/system-configs/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/system-configs/:id","type":0,"val":"system-configs","end":""},{"old":"/api/v1/admin/system-configs/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.system_configs.update']['types'],
+  },
+  'admin.system_configs.destroy': {
+    methods: ["DELETE"],
+    pattern: '/api/v1/admin/system-configs/:id',
+    tokens: [{"old":"/api/v1/admin/system-configs/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/system-configs/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/system-configs/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/system-configs/:id","type":0,"val":"system-configs","end":""},{"old":"/api/v1/admin/system-configs/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.system_configs.destroy']['types'],
   },
   'admin.upload_config.show': {
     methods: ["GET","HEAD"],

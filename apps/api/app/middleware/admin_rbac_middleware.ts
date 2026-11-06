@@ -4,7 +4,7 @@ import type { NextFn } from '@adonisjs/core/types/http'
 
 export default class AdminRbacMiddleware {
   async handle({ auth, response }: HttpContext, next: NextFn, options: AuthorizationRequirement) {
-    const user = auth.getUserOrFail()
+    const user = auth.use('api').getUserOrFail()
     if (!(await AdminRbacService.allows(user, options))) {
       return response.forbidden({
         code: 'E_ADMIN_FORBIDDEN',

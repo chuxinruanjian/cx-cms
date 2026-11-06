@@ -81,7 +81,7 @@ export default class AdminSecurityController {
   }
 
   async updatePassword({ auth, request, response }: HttpContext) {
-    const user = auth.getUserOrFail()
+    const user = auth.use('api').getUserOrFail()
     const { currentPassword, newPassword } = await request.validateUsing(
       changeAdminPasswordValidator
     )
@@ -107,7 +107,7 @@ export default class AdminSecurityController {
   }
 
   async sendMobileCode({ auth, request, response, logger }: HttpContext) {
-    const user = auth.getUserOrFail()
+    const user = auth.use('api').getUserOrFail()
     const { mobile } = await request.validateUsing(sendAdminMobileCodeValidator)
 
     try {
@@ -136,7 +136,7 @@ export default class AdminSecurityController {
   }
 
   async updateMobile({ auth, request, response }: HttpContext) {
-    const user = auth.getUserOrFail()
+    const user = auth.use('api').getUserOrFail()
     const { currentPassword, mobile, code } = await request.validateUsing(
       updateAdminMobileValidator
     )

@@ -18,6 +18,10 @@ const permissions = [
   ['更新权限', 'admin.permissions.update'],
   ['删除权限', 'admin.permissions.delete'],
   ['上传文件', 'admin.uploads.create'],
+  ['查看系统配置', 'admin.system_configs.view'],
+  ['创建系统配置', 'admin.system_configs.create'],
+  ['更新系统配置', 'admin.system_configs.update'],
+  ['删除系统配置', 'admin.system_configs.delete'],
 ] as const
 
 const obsoleteUploadPermissions = [

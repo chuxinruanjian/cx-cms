@@ -111,6 +111,29 @@ changes, run typecheck, tests, and builds for every affected workspace.
   plus ID), never an `AdminUser` model. Resource and session ownership checks
   compare both `uploader_type` and `uploader_id`; only an admin superuser may
   bypass ownership. Do not trust client-supplied uploader identity.
+- `system_configs` is shared infrastructure without the `admin_` prefix.
+  Its immutable `config_key` and `type` identify public or internal string
+  configurations. Internal values are encrypted with the existing application
+  encryptor and must only be decrypted through `SystemConfigService.get` on the
+  server; management APIs never return internal values or ciphertext. The public
+  endpoint explicitly projects only public rows. Never convert an internal row
+  to public. Certificates remain in private runtime directories; store their
+  paths, never public upload URLs, as internal configuration values. Existing
+  environment-based branding and provider integrations keep their contracts.
+- Frontend user authentication uses `users`, `user_access_tokens`,
+  `user_wechat_accounts`, `user_oauth_states`, and `user_auth_limits`, separate
+  from administrator identities. Routes live under `/api/v1/auth/*` and use the
+  explicit `user` guard. Shared user uploads use trusted `UploadActor` ownership.
+- WeChat users receive random usernames and a hashed default password `123456`;
+  password login remains disabled until an authenticated user sets a new password.
+  A username may change successfully once, enforced atomically. Mobile is nullable
+  and may only be bound by a verified flow; profile updates accept nickname/avatar.
+- WeChat identity comes only from server-side code exchange. Identity hashes retain
+  OpenID case sensitivity; UnionID matching is scoped to the configured open
+  platform, or appId when absent. Identity conflicts must never silently merge users.
+  Official-account OAuth state is browser-bound, expiring and single-use. Mini
+  program avatar/nickname authorization is separate from login. Provider credentials,
+  session keys and access tokens must never enter responses or application logs.
 - All upload scenarios use the services under `app/services/upload`. Business
   code must use `StorageManager`, never a concrete OSS/S3 SDK directly.
 - Local storage remains the default. Qiniu uses the `qiniu` storage adapter and
