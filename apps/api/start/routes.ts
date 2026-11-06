@@ -12,6 +12,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import app from '@adonisjs/core/services/app'
 import router from '@adonisjs/core/services/router'
 
+const MembersController = () => import('#controllers/members_controller')
 const UserUploadsController = () => import('#controllers/user_uploads_controller')
 const UserAuthController = () => import('#controllers/user_auth_controller')
 const AccessTokensController = () => import('#controllers/access_tokens_controller')
@@ -95,6 +96,15 @@ router
 
     router
       .group(() => {
+        router
+          .get('members', [MembersController, 'index'])
+          .use(middleware.adminRbac({ permissions: ['admin.members.view'] }))
+        router
+          .get('members/:id', [MembersController, 'show'])
+          .use(middleware.adminRbac({ permissions: ['admin.members.view'] }))
+        router
+          .patch('members/:id', [MembersController, 'update'])
+          .use(middleware.adminRbac({ permissions: ['admin.members.update'] }))
         router.get('auth/me', [AccessTokensController, 'show']).as('auth.me')
         router.patch('auth/me', [AccessTokensController, 'update']).as('auth.update')
         router.delete('auth/logout', [AccessTokensController, 'destroy']).as('auth.logout')

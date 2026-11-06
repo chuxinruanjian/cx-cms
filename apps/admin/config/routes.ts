@@ -67,6 +67,16 @@ export default [
     ],
   },
   {
+    path: '/members',
+    name: 'members',
+    icon: 'team',
+    access: 'canViewMembers',
+    routes: [
+      { path: '/members', component: './members' },
+      { path: '/members/:id', component: './members/detail', hideInMenu: true },
+    ],
+  },
+  {
     path: '/system-config',
     name: 'system-config',
     icon: 'setting',

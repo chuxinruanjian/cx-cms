@@ -5,6 +5,8 @@ import env from '#start/env'
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 
 const permissions = [
+  ['查看前台用户', 'admin.members.view'],
+  ['更新前台用户', 'admin.members.update'],
   ['查看管理员', 'admin.users.view'],
   ['更新管理员', 'admin.users.update'],
   ['分配管理员角色', 'admin.users.roles'],

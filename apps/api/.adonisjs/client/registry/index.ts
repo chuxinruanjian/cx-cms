@@ -162,6 +162,24 @@ const routes = {
     tokens: [{"old":"/api/v1/admin/auth/password-reset","type":0,"val":"api","end":""},{"old":"/api/v1/admin/auth/password-reset","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/auth/password-reset","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/auth/password-reset","type":0,"val":"auth","end":""},{"old":"/api/v1/admin/auth/password-reset","type":0,"val":"password-reset","end":""}],
     types: placeholder as Registry['admin.auth.passwordReset']['types'],
   },
+  'admin.members.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/members',
+    tokens: [{"old":"/api/v1/admin/members","type":0,"val":"api","end":""},{"old":"/api/v1/admin/members","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/members","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/members","type":0,"val":"members","end":""}],
+    types: placeholder as Registry['admin.members.index']['types'],
+  },
+  'admin.members.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/members/:id',
+    tokens: [{"old":"/api/v1/admin/members/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/members/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/members/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/members/:id","type":0,"val":"members","end":""},{"old":"/api/v1/admin/members/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.members.show']['types'],
+  },
+  'admin.members.update': {
+    methods: ["PATCH"],
+    pattern: '/api/v1/admin/members/:id',
+    tokens: [{"old":"/api/v1/admin/members/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/members/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/members/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/members/:id","type":0,"val":"members","end":""},{"old":"/api/v1/admin/members/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.members.update']['types'],
+  },
   'admin.auth.me': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/admin/auth/me',

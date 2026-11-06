@@ -124,6 +124,11 @@ changes, run typecheck, tests, and builds for every affected workspace.
   `user_wechat_accounts`, `user_oauth_states`, and `user_auth_limits`, separate
   from administrator identities. Routes live under `/api/v1/auth/*` and use the
   explicit `user` guard. Shared user uploads use trusted `UploadActor` ownership.
+- Management of frontend users lives at `/api/v1/admin/members` and the admin
+  `/members` pages, protected by `admin.members.view`/`admin.members.update`.
+  Do not confuse it with `/api/v1/admin/users` (administrator RBAC accounts).
+  Management profile updates accept nickname/avatar/status only; disabling a
+  frontend user revokes their tokens and must not bypass username/mobile rules.
 - WeChat users receive random usernames and a hashed default password `123456`;
   password login remains disabled until an authenticated user sets a new password.
   A username may change successfully once, enforced atomically. Mobile is nullable

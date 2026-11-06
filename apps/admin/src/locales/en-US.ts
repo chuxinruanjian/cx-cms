@@ -1,5 +1,6 @@
 import component from './en-US/component';
 import globalHeader from './en-US/globalHeader';
+import members from './en-US/members';
 import menu from './en-US/menu';
 import network from './en-US/network';
 import pages from './en-US/pages';
@@ -27,4 +28,5 @@ export default {
   ...uiStandard,
   ...uploader,
   ...systemConfig,
+  ...members,
 };

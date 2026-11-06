@@ -1,4 +1,5 @@
 export default {
+  'menu.members': 'User Management',
   'menu.welcome': 'Welcome',
   'menu.more-blocks': 'More Blocks',
   'menu.home': 'Home',

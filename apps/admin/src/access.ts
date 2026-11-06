@@ -15,6 +15,8 @@ export default function access(
     );
 
   return {
+    canViewMembers: hasPermission('admin.members.view'),
+    canUpdateMembers: hasPermission('admin.members.update'),
     canAdmin: Boolean(currentUser),
     canViewSystemConfig: hasPermission('admin.system_configs.view'),
     canCreateSystemConfig: hasPermission('admin.system_configs.create'),

@@ -1,4 +1,5 @@
 export default {
+  'menu.members': '用户管理',
   'menu.welcome': '欢迎',
   'menu.more-blocks': '更多区块',
   'menu.home': '首页',

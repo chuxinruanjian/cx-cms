@@ -319,6 +319,42 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_security_controller').default['resetPassword']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'admin.members.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/members'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/member_management').listMembersValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/members_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/members_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.members.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/members/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/members_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/members_controller').default['show']>>>
+    }
+  }
+  'admin.members.update': {
+    methods: ["PATCH"]
+    pattern: '/api/v1/admin/members/:id'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/member_management').updateMemberValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/member_management').updateMemberValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/members_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/members_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'admin.auth.me': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/admin/auth/me'

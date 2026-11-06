@@ -30,6 +30,9 @@ export type ScannedRoutes = {
     'admin.auth.sms.login': { paramsTuple?: []; params?: {} }
     'admin.auth.passwordReset.code': { paramsTuple?: []; params?: {} }
     'admin.auth.passwordReset': { paramsTuple?: []; params?: {} }
+    'admin.members.index': { paramsTuple?: []; params?: {} }
+    'admin.members.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.members.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.auth.me': { paramsTuple?: []; params?: {} }
     'admin.auth.update': { paramsTuple?: []; params?: {} }
     'admin.auth.logout': { paramsTuple?: []; params?: {} }
@@ -70,6 +73,8 @@ export type ScannedRoutes = {
     'user.upload_config.show': { paramsTuple?: []; params?: {} }
     'user.user_uploads.show': { paramsTuple: [ParamValue]; params: {'uploadId': ParamValue} }
     'user.user_auth.show': { paramsTuple?: []; params?: {} }
+    'admin.members.index': { paramsTuple?: []; params?: {} }
+    'admin.members.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.auth.me': { paramsTuple?: []; params?: {} }
     'admin.admin_users.index': { paramsTuple?: []; params?: {} }
     'admin.admin_roles.index': { paramsTuple?: []; params?: {} }
@@ -85,6 +90,8 @@ export type ScannedRoutes = {
     'user.upload_config.show': { paramsTuple?: []; params?: {} }
     'user.user_uploads.show': { paramsTuple: [ParamValue]; params: {'uploadId': ParamValue} }
     'user.user_auth.show': { paramsTuple?: []; params?: {} }
+    'admin.members.index': { paramsTuple?: []; params?: {} }
+    'admin.members.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.auth.me': { paramsTuple?: []; params?: {} }
     'admin.admin_users.index': { paramsTuple?: []; params?: {} }
     'admin.admin_roles.index': { paramsTuple?: []; params?: {} }
@@ -133,6 +140,7 @@ export type ScannedRoutes = {
   PATCH: {
     'user.user_auth.update': { paramsTuple?: []; params?: {} }
     'user.user_auth.rename': { paramsTuple?: []; params?: {} }
+    'admin.members.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.auth.update': { paramsTuple?: []; params?: {} }
     'admin.auth.security.password': { paramsTuple?: []; params?: {} }
     'admin.admin_users.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

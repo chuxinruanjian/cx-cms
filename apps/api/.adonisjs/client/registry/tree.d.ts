@@ -55,6 +55,11 @@ export interface ApiDefinition {
         }
       }
     }
+    members: {
+      index: typeof routes['admin.members.index']
+      show: typeof routes['admin.members.show']
+      update: typeof routes['admin.members.update']
+    }
     adminUsers: {
       index: typeof routes['admin.admin_users.index']
       update: typeof routes['admin.admin_users.update']

@@ -1,5 +1,6 @@
 import component from './zh-CN/component';
 import globalHeader from './zh-CN/globalHeader';
+import members from './zh-CN/members';
 import menu from './zh-CN/menu';
 import network from './zh-CN/network';
 import pages from './zh-CN/pages';
@@ -27,4 +28,5 @@ export default {
   ...uiStandard,
   ...uploader,
   ...systemConfig,
+  ...members,
 };

@@ -39,3 +39,12 @@
 所有表通过 Lucid 迁移创建，兼容 SQLite/MySQL 的查询与字段。运行迁移前备份现有数据库；已有安装须先核对迁移历史与当前基线，不应直接重建业务数据库。
 
 自动化测试覆盖模拟微信响应、UnionID、并发去重、OAuth state、密码启用、一次改名、资料更新、用户上传和管理员身份隔离。真实微信授权仍需使用实际应用凭据及微信客户端联调。此功能只提供 API，不初始化 H5 或小程序前端工程。
+
+## 后台用户管理
+
+后台“用户管理”位于 `/admin/members`，遵循界面示例，提供分页筛选、用户详情、
+昵称/头像编辑及启停用。API 为 `/api/v1/admin/members`（GET 列表）、
+`/api/v1/admin/members/:id`（GET 详情、PATCH 修改），分别要求
+`admin.members.view`、`admin.members.update`。非超级管理员需分配这些权限；
+执行 RBAC 初始化脚本可同步权限目录。更换头像还需要 `admin.uploads.create`。
+停用会撤销用户全部访问令牌；管理接口不修改用户名、手机号或密码。
