@@ -8,12 +8,13 @@
 
 所有业务页面使用 `@/components/AdminPage`：
 
-- 外层使用与 `/admin/dashboard/analysis` 相同的 `GridContent`，页面内容
-  左右边界必须与该页面一致，不再叠加 `PageContainer` 内边距；
-- 页面顶部必须包含面包屑；
-- 页面标题使用 `PageContainer` 的标准字号，不添加页面描述；
-- 页面级操作放在标题栏右上角；
-- 窄屏通过 Ant Design 响应式栅格自然降级，不写固定桌面宽度。
+- `AdminPage` 只透传到官方 ProComponents `PageContainer`，由它和 `ProLayout`
+  原生管理页面标题、面包屑、内容边距及响应式布局；
+- 不使用手写标题栏、额外的 `main` 或自定义 CSS 重建这些布局，不覆盖原生边距；
+- 页面顶部必须包含面包屑，不添加页面描述；
+- 页面级操作通过 `extra` 放在标题栏右上角；
+- 官网仪表盘采用 `GridContent` 的页面沿用原结构，不额外套 `PageContainer`；
+- 窄屏沿用组件的原生响应式布局，不写固定桌面宽度。
 
 ## 列表与筛选
 

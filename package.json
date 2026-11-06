@@ -37,5 +37,8 @@
   "engines": {
     "node": ">=24.0.0",
     "npm": ">=11.0.0"
+  },
+  "overrides": {
+    "@ant-design/pro-components": "3.1.14-2"
   }
 }

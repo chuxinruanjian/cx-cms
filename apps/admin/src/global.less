@@ -54,6 +54,47 @@ body,
   filter: invert(80%);
 }
 
+html,
+body,
+body * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ant-color-fill-secondary, rgba(0, 0, 0, 0.16)) transparent;
+
+  &:hover {
+    scrollbar-color: var(--ant-color-fill, rgba(0, 0, 0, 0.24)) transparent;
+  }
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track,
+  &::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    min-height: 32px;
+    background: var(--ant-color-fill-secondary, rgba(0, 0, 0, 0.16));
+    background-clip: padding-box;
+    border: 2px solid transparent;
+    border-radius: 8px;
+
+    &:hover {
+      background-color: var(--ant-color-fill, rgba(0, 0, 0, 0.24));
+    }
+  }
+}
+
+@media (forced-colors: active) {
+  html,
+  body,
+  body * {
+    scrollbar-color: auto;
+  }
+}
+
 .ant-layout {
   min-height: 100vh;
 }

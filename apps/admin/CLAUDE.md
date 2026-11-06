@@ -18,6 +18,9 @@ Other: `npm run openapi` (regenerate `src/services/`), `npm run simple` (**irrev
 - **`npm run simple` is irreversible** — always commit/branch first
 - **Conventional commits** required (commitlint enforced)
 - **TypeScript strict** · **Node ≥ 24** · **`package-lock.json`** (not yarn/pnpm)
+- The root npm override keeps Umi’s layout plugin on the same ProComponents 3
+  as the admin app. Preserve this alignment: mixed versions break the shared
+  `ProLayout` / `PageContainer` context and duplicate content spacing.
 - **`.umi` dir is auto-generated** — delete `src/.umi` and restart if dev server acts up
 
 ## Architecture Essentials
@@ -74,9 +77,11 @@ Each page dir: `index.tsx`, optional `service.ts`, `_mock.ts`, `data.d.ts`, styl
 Use `src/pages/ui-standard` and `../../docs/admin-ui-standards.md` as the required
 blueprint for new business pages:
 
-- Wrap business pages with `@/components/AdminPage` so their outer boundary
-  matches the `GridContent` used by `dashboard/analysis`. Keep compact titles
-  and breadcrumbs; do not add `PageContainer` padding or page descriptions.
+- Wrap business pages with `@/components/AdminPage`, a thin wrapper around the
+  official ProComponents `PageContainer`. Use its native header, breadcrumbs,
+  extra actions, content spacing, and responsive layout. Do not rebuild these
+  with custom markup or override their spacing. Official dashboard `GridContent`
+  pages keep their existing pattern. Do not add page descriptions.
 - List row actions use one bordered `MoreOutlined` dropdown button. Every menu
   item needs a semantic icon and concise text such as "详情".
 - Filters are always visible, use `Form layout="vertical"`, and put labels above

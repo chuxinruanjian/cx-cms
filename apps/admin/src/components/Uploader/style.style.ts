@@ -3,20 +3,22 @@ import { createStyles } from 'antd-style';
 const useStyles = createStyles(({ token }) => ({
   root: {
     width: '100%',
-    '& .ant-upload-list-picture-card .ant-upload-list-item-thumbnail': {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      overflow: 'hidden',
-    },
-    '& .ant-upload-list-picture-card .ant-upload-list-item-thumbnail img': {
-      width: '100%',
-      height: '100%',
-      maxWidth: '100%',
-      maxHeight: '100%',
-      objectFit: 'contain',
-      objectPosition: 'center',
-    },
+    '& .ant-upload-list-picture-card .ant-upload-list-item-thumbnail, & .ant-upload-list-picture-circle .ant-upload-list-item-thumbnail':
+      {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      },
+    '& .ant-upload-list-picture-card .ant-upload-list-item-thumbnail img, & .ant-upload-list-picture-circle .ant-upload-list-item-thumbnail img':
+      {
+        width: '100%',
+        height: '100%',
+        maxWidth: '100%',
+        maxHeight: '100%',
+        objectFit: 'contain',
+        objectPosition: 'center',
+      },
   },
   uploadButton: {
     display: 'flex',
@@ -74,13 +76,6 @@ const useStyles = createStyles(({ token }) => ({
     fontSize: token.fontSizeSM,
     fontWeight: 400,
     lineHeight: token.lineHeightSM,
-  },
-  avatarActions: {
-    marginTop: token.marginSM,
-  },
-  avatarProgress: {
-    maxWidth: 320,
-    marginTop: token.marginSM,
   },
   hint: {
     display: 'block',

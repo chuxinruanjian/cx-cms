@@ -1,14 +1,9 @@
-import {
-  DeleteOutlined,
-  EyeOutlined,
-  LoadingOutlined,
-  PlusOutlined,
-} from '@ant-design/icons';
+import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import { useIntl } from '@umijs/max';
 import type { GetProp, UploadFile, UploadProps } from 'antd';
-import { App, Button, Image, Progress, Space, Typography, Upload } from 'antd';
+import { App, Image, Typography, Upload } from 'antd';
 import ImgCrop from 'antd-img-crop';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { UploadedFile } from '@/services/upload';
 import useStyles from './style.style';
 import type { UploaderProps, UploadTask } from './types';
@@ -28,22 +23,6 @@ const getBase64 = (file: File) =>
     reader.addEventListener('error', reject);
     reader.readAsDataURL(file);
   });
-
-const useLocalPreview = (file?: File) => {
-  const [source, setSource] = useState<string>();
-
-  useEffect(() => {
-    if (!file) {
-      setSource(undefined);
-      return;
-    }
-    const objectUrl = URL.createObjectURL(file);
-    setSource(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [file]);
-
-  return source;
-};
 
 const taskStatus = (task: UploadTask): UploadFile['status'] => {
   if (task.status === 'error') return 'error';
@@ -75,8 +54,6 @@ export const ImageUploader = ({
       ),
     [uploader.tasks],
   );
-  const activeTask = activeTasks[0];
-  const localAvatarPreview = useLocalPreview(activeTask?.file);
 
   const fileList = useMemo<ImageUploadFile[]>(
     () => [
@@ -180,58 +157,65 @@ export const ImageUploader = ({
     maxCount: options.maxCount,
   };
 
-  const candidateAvatarSource =
-    localAvatarPreview || uploader.files[0]?.url || options.initialPreviewUrl;
+  const candidateAvatarSource = options.initialPreviewUrl;
   const avatarSource =
     candidateAvatarSource === failedAvatarSource
       ? undefined
       : candidateAvatarSource;
-  const avatarUpload = (
-    <Upload
-      {...commonProps}
-      listType="picture-circle"
-      showUploadList={false}
-      multiple={false}
+  const avatarButton = (
+    <button
+      className={styles.avatarButton}
+      type="button"
+      aria-label={String(uploadLabel)}
     >
-      <button
-        className={styles.avatarButton}
-        type="button"
-        aria-label={String(uploadLabel)}
-      >
-        {avatarSource ? (
-          <img
-            alt={String(uploadLabel)}
-            className={styles.avatarImage}
-            draggable={false}
-            src={avatarSource}
-            onError={() => setFailedAvatarSource(avatarSource)}
-          />
-        ) : (
-          <span className={styles.avatarPlaceholder}>
-            {activeTask ? (
-              <LoadingOutlined />
-            ) : options.fallbackText ? (
-              <span className={styles.avatarFallback}>
-                <span>{options.fallbackText}</span>
-                <span className={styles.avatarFallbackHint}>{uploadLabel}</span>
-              </span>
-            ) : (
-              <>
-                <PlusOutlined />
-                <span>{uploadLabel}</span>
-              </>
-            )}
-          </span>
-        )}
-      </button>
-    </Upload>
+      {avatarSource ? (
+        <img
+          alt={String(uploadLabel)}
+          className={styles.avatarImage}
+          draggable={false}
+          src={avatarSource}
+          onError={() => setFailedAvatarSource(avatarSource)}
+        />
+      ) : (
+        <span className={styles.avatarPlaceholder}>
+          {options.fallbackText ? (
+            <span className={styles.avatarFallback}>
+              <span>{options.fallbackText}</span>
+              <span className={styles.avatarFallbackHint}>{uploadLabel}</span>
+            </span>
+          ) : (
+            <>
+              <PlusOutlined />
+              <span>{uploadLabel}</span>
+            </>
+          )}
+        </span>
+      )}
+    </button>
   );
 
-  const wallUpload = (
+  const imageUpload = (
     <Upload
       {...commonProps}
-      listType="picture-card"
+      listType={isAvatar ? 'picture-circle' : 'picture-card'}
       fileList={fileList}
+      isImageUrl={
+        isAvatar
+          ? (file) => (file.thumbUrl || file.url) !== failedAvatarSource
+          : undefined
+      }
+      iconRender={
+        isAvatar
+          ? (file) =>
+              file.status === 'uploading' ? (
+                <LoadingOutlined />
+              ) : (
+                <span className={styles.avatarFallback}>
+                  {options.fallbackText || <PlusOutlined />}
+                </span>
+              )
+          : undefined
+      }
       onChange={() => undefined}
       onPreview={handlePreview}
       onRemove={handleRemove}
@@ -254,7 +238,7 @@ export const ImageUploader = ({
         </div>
       )}
     >
-      {reachedLimit ? null : uploadButton}
+      {reachedLimit ? null : isAvatar ? avatarButton : uploadButton}
     </Upload>
   );
 
@@ -272,56 +256,22 @@ export const ImageUploader = ({
       resetText={t('uploader.action.reset', 'Reset')}
       beforeCrop={(file) => file.type.startsWith('image/')}
     >
-      {isAvatar ? avatarUpload : wallUpload}
+      {imageUpload}
     </ImgCrop>
-  ) : isAvatar ? (
-    avatarUpload
   ) : (
-    wallUpload
+    imageUpload
   );
 
   return (
-    <div className={styles.root}>
+    <div
+      className={styles.root}
+      onErrorCapture={(event) => {
+        if (isAvatar && event.target instanceof HTMLImageElement) {
+          setFailedAvatarSource(event.target.getAttribute('src') || '');
+        }
+      }}
+    >
       {uploadControl}
-
-      {isAvatar && (uploader.files[0] || activeTask) && (
-        <Space className={styles.avatarActions}>
-          {avatarSource && (
-            <Button
-              icon={<EyeOutlined />}
-              onClick={() => {
-                setPreviewImage(avatarSource);
-                setPreviewOpen(true);
-              }}
-            >
-              {t('uploader.action.preview', 'Preview')}
-            </Button>
-          )}
-          <Button
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => {
-              if (activeTask) void removeItem(undefined, activeTask);
-              else if (uploader.files[0]) void removeItem(uploader.files[0]);
-            }}
-          >
-            {t('uploader.action.remove', 'Remove')}
-          </Button>
-        </Space>
-      )}
-
-      {isAvatar && activeTask && (
-        <div className={styles.avatarProgress}>
-          <Progress
-            percent={activeTask.progress}
-            size="small"
-            status={activeTask.status === 'error' ? 'exception' : 'active'}
-          />
-          {activeTask.error && (
-            <Typography.Text type="danger">{activeTask.error}</Typography.Text>
-          )}
-        </div>
-      )}
 
       {!compact && (
         <Typography.Text type="secondary" className={styles.hint}>

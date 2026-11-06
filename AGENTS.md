@@ -175,9 +175,11 @@ changes, run typecheck, tests, and builds for every affected workspace.
   responsive wide-screen-first layout.
 - Dedicated create/edit page actions such as back and save belong in the
   top-right page header.
-- Business pages use `@/components/AdminPage` for the same `GridContent`
-  boundary as `dashboard/analysis`, plus a compact title and breadcrumbs.
-  Do not add `PageContainer` padding or page descriptions. All new UI copy
+- Business pages use `@/components/AdminPage`, a thin wrapper around the official
+  ProComponents `PageContainer`. Let `PageContainer` and `ProLayout` manage page
+  headers, content spacing, and responsive layout; do not rebuild headers or
+  override their spacing with custom CSS. Dashboard pages that use the official
+  `GridContent` pattern keep it. Do not add page descriptions. All new UI copy
   requires both `zh-CN` and `en-US` entries.
 - The global header contains only the language switcher and user dropdown.
   Do not restore documentation/version buttons or the floating SettingDrawer.
