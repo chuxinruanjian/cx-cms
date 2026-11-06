@@ -7,6 +7,18 @@ import type { InferInput, SimpleError } from '@vinejs/vine/types'
 export type ParamValue = string | number | bigint | boolean
 
 export interface Registry {
+  'uploaded_files.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/uploads/files/:uuid'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { uuid: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/uploaded_files_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/uploaded_files_controller').default['show']>>>
+    }
+  }
   'admin.auth.login': {
     methods: ["POST"]
     pattern: '/api/v1/admin/auth/login'
@@ -295,18 +307,6 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/upload_config_controller').default['show']>>>
     }
   }
-  'admin.uploads.index': {
-    methods: ["GET","HEAD"]
-    pattern: '/api/v1/admin/uploads'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: ExtractQueryForGet<InferInput<(typeof import('#validators/admin_upload').listUploadSessionsValidator)>>
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/uploads_controller').default['index']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/uploads_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
-    }
-  }
   'admin.uploads.store': {
     methods: ["POST"]
     pattern: '/api/v1/admin/uploads'
@@ -403,88 +403,16 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/uploads_controller').default['abort']>>>
     }
   }
-  'admin.attachments.index': {
-    methods: ["GET","HEAD"]
-    pattern: '/api/v1/admin/attachments'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: ExtractQueryForGet<InferInput<(typeof import('#validators/admin_upload').listAttachmentsValidator)>>
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/attachments_controller').default['index']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/attachments_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
-    }
-  }
-  'admin.attachments.bind': {
-    methods: ["POST"]
-    pattern: '/api/v1/admin/attachments/bind'
-    types: {
-      body: ExtractBody<InferInput<(typeof import('#validators/admin_upload').bindAttachmentsValidator)>>
-      paramsTuple: []
-      params: {}
-      query: ExtractQuery<InferInput<(typeof import('#validators/admin_upload').bindAttachmentsValidator)>>
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/attachments_controller').default['bind']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/attachments_controller').default['bind']>>> | { status: 422; response: { errors: SimpleError[] } }
-    }
-  }
-  'admin.attachments.sort': {
-    methods: ["POST"]
-    pattern: '/api/v1/admin/attachments/sort'
-    types: {
-      body: ExtractBody<InferInput<(typeof import('#validators/admin_upload').sortAttachmentsValidator)>>
-      paramsTuple: []
-      params: {}
-      query: ExtractQuery<InferInput<(typeof import('#validators/admin_upload').sortAttachmentsValidator)>>
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/attachments_controller').default['sort']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/attachments_controller').default['sort']>>> | { status: 422; response: { errors: SimpleError[] } }
-    }
-  }
-  'admin.attachments.show': {
-    methods: ["GET","HEAD"]
-    pattern: '/api/v1/admin/attachments/:id'
-    types: {
-      body: {}
-      paramsTuple: [ParamValue]
-      params: { id: ParamValue }
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/attachments_controller').default['show']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/attachments_controller').default['show']>>>
-    }
-  }
-  'admin.attachments.content': {
-    methods: ["GET","HEAD"]
-    pattern: '/api/v1/admin/attachments/:id/content'
-    types: {
-      body: {}
-      paramsTuple: [ParamValue]
-      params: { id: ParamValue }
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/attachments_controller').default['content']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/attachments_controller').default['content']>>>
-    }
-  }
-  'admin.attachments.destroy': {
+  'admin.uploads.destroy': {
     methods: ["DELETE"]
-    pattern: '/api/v1/admin/attachments/:id'
+    pattern: '/api/v1/admin/uploads/files/:id'
     types: {
       body: {}
       paramsTuple: [ParamValue]
       params: { id: ParamValue }
       query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/attachments_controller').default['destroy']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/attachments_controller').default['destroy']>>>
-    }
-  }
-  'admin.upload_cleanup.store': {
-    methods: ["POST"]
-    pattern: '/api/v1/admin/uploads/cleanup'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/upload_cleanup_controller').default['store']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/upload_cleanup_controller').default['store']>>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/uploads_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/uploads_controller').default['destroy']>>>
     }
   }
 }

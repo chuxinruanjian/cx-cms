@@ -100,11 +100,17 @@ changes, run typecheck, tests, and builds for every affected workspace.
 - Permission codes use dot-separated lowercase names such as
   `admin.roles.update`. Protect management routes with the named `adminRbac`
   middleware instead of duplicating role checks in controllers.
-- Upload internals use `attachments`, `upload_sessions`, and `upload_chunks`.
+- The unified file resource table is `attachments`: every frontend-user or
+  administrator upload creates one file record. Upload internals also use
+  `upload_sessions` and `upload_chunks`.
   They are shared infrastructure tables and therefore do not use the
   management-only `admin_` prefix. There is no asset library or polymorphic
   attachment binding. Business tables save the returned URL in their actual
   fields and must never use an attachment ID as a business foreign key.
+- Upload services accept a trusted server-side `UploadActor` (`admin` or `user`
+  plus ID), never an `AdminUser` model. Resource and session ownership checks
+  compare both `uploader_type` and `uploader_id`; only an admin superuser may
+  bypass ownership. Do not trust client-supplied uploader identity.
 - All upload scenarios use the services under `app/services/upload`. Business
   code must use `StorageManager`, never a concrete OSS/S3 SDK directly.
 - Local storage remains the default. Qiniu uses the `qiniu` storage adapter and

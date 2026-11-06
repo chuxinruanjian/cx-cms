@@ -2,7 +2,7 @@ import { BaseSchema } from '@adonisjs/lucid/schema'
 
 export default class extends BaseSchema {
   async up() {
-    this.schema.createTable('admin_attachments', (table) => {
+    this.schema.createTable('attachments', (table) => {
       table.increments('id').notNullable()
       table.uuid('uuid').notNullable()
       table
@@ -10,7 +10,7 @@ export default class extends BaseSchema {
         .unsigned()
         .nullable()
         .references('id')
-        .inTable('admin_attachments')
+        .inTable('attachments')
         .withKeyName('att_parent_fk')
         .onDelete('CASCADE')
       table.string('original_name', 255).notNullable()
@@ -29,14 +29,8 @@ export default class extends BaseSchema {
       table.string('status', 32).notNullable()
       table.string('upload_mode', 32).notNullable()
       table.string('upload_token', 64).notNullable()
-      table
-        .integer('uploader_id')
-        .unsigned()
-        .notNullable()
-        .references('id')
-        .inTable('admin_users')
-        .withKeyName('att_uploader_fk')
-        .onDelete('RESTRICT')
+      table.string('uploader_type', 16).notNullable()
+      table.integer('uploader_id').unsigned().notNullable()
       table.boolean('is_complete').notNullable().defaultTo(false)
       table.text('error_message').nullable()
       table.timestamp('created_at').notNullable()
@@ -49,33 +43,11 @@ export default class extends BaseSchema {
       table.index(['status'], 'att_status_idx')
       table.index(['upload_token'], 'att_token_idx')
       table.index(['expires_at'], 'att_expires_idx')
-      table.index(['uploader_id', 'status'], 'att_uploader_status_idx')
+      table.index(['uploader_type', 'uploader_id', 'status'], 'att_uploader_status_idx')
       table.index(['hash', 'size'], 'att_hash_size_idx')
     })
 
-    this.schema.createTable('admin_attachment_relations', (table) => {
-      table.increments('id').notNullable()
-      table
-        .integer('attachment_id')
-        .unsigned()
-        .notNullable()
-        .references('id')
-        .inTable('admin_attachments')
-        .withKeyName('att_rel_attachment_fk')
-        .onDelete('CASCADE')
-      table.string('business_type', 64).notNullable()
-      table.string('business_id', 64).notNullable()
-      table.string('field_name', 64).notNullable()
-      table.integer('sort').unsigned().notNullable().defaultTo(0)
-      table.timestamp('created_at').notNullable()
-      table.unique(
-        ['attachment_id', 'business_type', 'business_id', 'field_name'],
-        'att_rel_business_uq'
-      )
-      table.index(['business_type', 'business_id', 'field_name'], 'att_rel_business_idx')
-    })
-
-    this.schema.createTable('admin_upload_sessions', (table) => {
+    this.schema.createTable('upload_sessions', (table) => {
       table.increments('id').notNullable()
       table.uuid('upload_id').notNullable()
       table.string('upload_token', 64).notNullable()
@@ -84,7 +56,7 @@ export default class extends BaseSchema {
         .unsigned()
         .notNullable()
         .references('id')
-        .inTable('admin_attachments')
+        .inTable('attachments')
         .withKeyName('upload_attachment_fk')
         .onDelete('CASCADE')
       table.string('original_name', 255).notNullable()
@@ -96,14 +68,8 @@ export default class extends BaseSchema {
       table.integer('uploaded_chunks').unsigned().notNullable().defaultTo(0)
       table.string('storage_upload_id', 255).nullable()
       table.string('status', 32).notNullable()
-      table
-        .integer('uploader_id')
-        .unsigned()
-        .notNullable()
-        .references('id')
-        .inTable('admin_users')
-        .withKeyName('upload_uploader_fk')
-        .onDelete('RESTRICT')
+      table.string('uploader_type', 16).notNullable()
+      table.integer('uploader_id').unsigned().notNullable()
       table.text('error_message').nullable()
       table.timestamp('expires_at').notNullable()
       table.timestamp('created_at').notNullable()
@@ -112,17 +78,17 @@ export default class extends BaseSchema {
       table.index(['upload_token'], 'upload_token_idx')
       table.index(['status'], 'upload_status_idx')
       table.index(['expires_at'], 'upload_expires_idx')
-      table.index(['uploader_id', 'status'], 'upload_uploader_status_idx')
+      table.index(['uploader_type', 'uploader_id', 'status'], 'upload_uploader_status_idx')
     })
 
-    this.schema.createTable('admin_upload_chunks', (table) => {
+    this.schema.createTable('upload_chunks', (table) => {
       table.increments('id').notNullable()
       table
         .integer('upload_session_id')
         .unsigned()
         .notNullable()
         .references('id')
-        .inTable('admin_upload_sessions')
+        .inTable('upload_sessions')
         .withKeyName('chunk_session_fk')
         .onDelete('CASCADE')
       table.integer('chunk_index').unsigned().notNullable()
@@ -137,9 +103,8 @@ export default class extends BaseSchema {
   }
 
   async down() {
-    this.schema.dropTable('admin_upload_chunks')
-    this.schema.dropTable('admin_upload_sessions')
-    this.schema.dropTable('admin_attachment_relations')
-    this.schema.dropTable('admin_attachments')
+    this.schema.dropTable('upload_chunks')
+    this.schema.dropTable('upload_sessions')
+    this.schema.dropTable('attachments')
   }
 }

@@ -1,6 +1,7 @@
 import uploadConfig from '#config/upload'
 import Attachment from '#models/attachment'
 import UploadSession from '#models/upload_session'
+import UploadSessionService from '#services/upload/upload_session_service'
 import AdminUser from '#models/admin_user'
 import AttachmentService from '#services/upload/attachment_service'
 import type {
@@ -16,7 +17,8 @@ import db from '@adonisjs/lucid/services/db'
 import type { ApiClient } from '@japa/api-client'
 import { test } from '@japa/runner'
 import { createHash, randomUUID } from 'node:crypto'
-import { rm } from 'node:fs/promises'
+import { mkdir, rm, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { Readable } from 'node:stream'
 import { DateTime } from 'luxon'
 
@@ -157,6 +159,180 @@ test.group('Unified admin uploads', (group) => {
     }
   })
 
+  test('records one shared resource per user upload without an administrator account', async ({
+    assert,
+  }) => {
+    const actor = { type: 'user' as const, id: 987654 }
+    await mkdir(uploadConfig.root, { recursive: true })
+    const sourcePath = join(uploadConfig.root, 'source.png')
+    await writeFile(sourcePath, png())
+    const urls: string[] = []
+    for (let index = 0; index < 3; index++) {
+      const attachment = await AttachmentService.createNormal(actor, {
+        sourcePath,
+        originalName: `site-${index}.png`,
+        mimeType: 'image/png',
+        expectedSize: 128,
+        uploadToken: 'project_photos_123',
+      })
+      const resource = AttachmentService.serialize(attachment)
+      assert.equal(resource.uploaderType, 'user')
+      assert.equal(resource.uploaderId, actor.id)
+      assert.equal(resource.status, 'active')
+      urls.push(resource.url!)
+    }
+    assert.equal(new Set(urls).size, 3)
+    assert.lengthOf(await Attachment.all(), 3)
+  })
+
+  test('isolates matching admin and user IDs for multipart ownership', async ({ assert }) => {
+    const admin = await createUser('shared-id', false)
+    const userActor = { type: 'user' as const, id: admin.id }
+    const adminActor = { type: 'admin' as const, id: admin.id }
+    const initialized = await UploadSessionService.initialize(userActor, {
+      originalName: 'site.png',
+      mimeType: 'image/png',
+      fileSize: 128,
+      uploadToken: 'shared_identity_123',
+    })
+    const session = await UploadSession.findByOrFail('uploadId', initialized.uploadId)
+    const attachment = await Attachment.findOrFail(initialized.attachmentId)
+    assert.equal(session.uploaderType, 'user')
+    assert.equal(attachment.uploaderType, 'user')
+    await assert.rejects(
+      () => UploadSessionService.status(adminActor, initialized.uploadId),
+      'Upload session belongs to another user'
+    )
+    await assert.rejects(
+      () => UploadSessionService.abort(adminActor, initialized.uploadId),
+      'Upload session belongs to another user'
+    )
+    await assert.rejects(
+      () => AttachmentService.delete(adminActor, attachment),
+      'Cannot delete this attachment'
+    )
+    // A user must not gain the administrator bypass, even with a forged extra property.
+    const forgedUser = { ...userActor, id: admin.id + 1, isSuperAdmin: true }
+    await assert.rejects(
+      () => UploadSessionService.status(forgedUser, initialized.uploadId),
+      'Upload session belongs to another user'
+    )
+    const status = await UploadSessionService.status(userActor, initialized.uploadId)
+    assert.equal(status.uploadId, initialized.uploadId)
+    await UploadSessionService.abort(userActor, initialized.uploadId)
+  })
+
+  test('completes a user multipart file once and keeps its public URL', async ({
+    assert,
+    client,
+  }) => {
+    const actor = { type: 'user' as const, id: 987654 }
+    const initialized = await UploadSessionService.initialize(actor, {
+      originalName: 'site.png',
+      mimeType: 'image/png',
+      fileSize: 128,
+      uploadToken: 'user_multipart_123',
+    })
+    await mkdir(uploadConfig.root, { recursive: true })
+    const sourcePath = join(uploadConfig.root, 'chunk.png')
+    await writeFile(sourcePath, png())
+    await UploadSessionService.uploadChunk(actor, initialized.uploadId, {
+      chunkIndex: 0,
+      chunkHash: sha256(png()),
+      sourcePath,
+      size: 128,
+    })
+    const completed = await UploadSessionService.complete(actor, initialized.uploadId)
+    const repeated = await UploadSessionService.complete(actor, initialized.uploadId)
+    assert.equal(completed.uploaderType, 'user')
+    assert.equal(completed.id, repeated.id)
+    assert.equal(completed.url, repeated.url)
+    assert.lengthOf(await Attachment.all(), 1)
+    const response = await client.get(completed.url!)
+    response.assertStatus(200)
+  })
+
+  test('isolates user direct uploads and records the verified resource once', async ({
+    assert,
+  }) => {
+    const mutableConfig = uploadConfig as unknown as { directUploadEnabled: boolean }
+    const previous = mutableConfig.directUploadEnabled
+    mutableConfig.directUploadEnabled = true
+    const adapter = new FakeQiniuAdapter()
+    StorageManager.register('qiniu', adapter)
+    try {
+      const admin = await createUser('direct-shared-id', false)
+      const actor = { type: 'user' as const, id: admin.id }
+      const initialized = await AttachmentService.initializeDirect(actor, {
+        originalName: 'site.png',
+        mimeType: 'image/png',
+        fileSize: 128,
+        uploadToken: 'user_direct_123',
+      })
+      adapter.objects.set(
+        initialized.objectKey,
+        adapter.object(initialized.objectKey, 128, 'image/png')
+      )
+      await assert.rejects(
+        () =>
+          AttachmentService.completeDirect(
+            { type: 'admin', id: admin.id },
+            initialized.attachmentId,
+            'user_direct_123'
+          ),
+        'Cannot complete this upload'
+      )
+      const completed = await AttachmentService.completeDirect(
+        actor,
+        initialized.attachmentId,
+        'user_direct_123'
+      )
+      const repeated = await AttachmentService.completeDirect(
+        actor,
+        initialized.attachmentId,
+        'user_direct_123'
+      )
+      assert.equal(completed.uploaderType, 'user')
+      assert.equal(completed.id, repeated.id)
+      assert.equal(completed.url, `https://cdn.example.test/${initialized.objectKey}`)
+      assert.lengthOf(await Attachment.all(), 1)
+    } finally {
+      mutableConfig.directUploadEnabled = previous
+    }
+  })
+
+  test('checks resource ownership before repeated deletion and permits only admin superusers to bypass it', async ({
+    assert,
+  }) => {
+    const owner = await createUser('delete-shared-id', false)
+    const actor = { type: 'admin' as const, id: owner.id }
+    await mkdir(uploadConfig.root, { recursive: true })
+    const sourcePath = join(uploadConfig.root, 'source.png')
+    await writeFile(sourcePath, png())
+    const attachment = await AttachmentService.createNormal(actor, {
+      sourcePath,
+      originalName: 'site.png',
+      mimeType: 'image/png',
+      expectedSize: 128,
+      uploadToken: 'delete_shared_123',
+    })
+    const userActor = { type: 'user' as const, id: owner.id, isSuperAdmin: true }
+    await assert.rejects(
+      () => AttachmentService.delete(userActor, attachment),
+      'Cannot delete this attachment'
+    )
+    await AttachmentService.delete(actor, attachment)
+    await assert.rejects(
+      () => AttachmentService.delete(userActor, attachment),
+      'Cannot delete this attachment'
+    )
+    const result = await AttachmentService.delete(
+      { type: 'admin', id: owner.id + 1, isSuperAdmin: true },
+      attachment
+    )
+    assert.equal(result.status, 'deleted')
+  })
+
   test('uses shared attachment table names and MySQL-safe index names', async ({ assert }) => {
     const tableNames = ['attachments', 'upload_sessions', 'upload_chunks']
 
@@ -188,6 +364,8 @@ test.group('Unified admin uploads', (group) => {
     response.assertStatus(201)
     response.assertBodyContains({
       originalName: 'image.png',
+      uploaderType: 'admin',
+      uploaderId: user.id,
       fileType: 'image',
       status: 'active',
       uploadMode: 'normal',
@@ -500,6 +678,7 @@ test.group('Unified admin uploads', (group) => {
       status: 'temporary',
       uploadMode: 'direct',
       uploadToken: 'oss_draft_123',
+      uploaderType: 'admin',
       uploaderId: user.id,
       isComplete: true,
       errorMessage: null,
@@ -524,7 +703,10 @@ test.group('Unified admin uploads', (group) => {
       hash: sha256(Buffer.from('thumb')),
     })
 
-    await AttachmentService.delete(user, attachment)
+    await AttachmentService.delete(
+      { type: 'admin', id: user.id, isSuperAdmin: user.isSuperAdmin },
+      attachment
+    )
     await derivative.refresh()
     if (
       !adapter.deleted.includes('files/example.pdf') ||
@@ -558,13 +740,12 @@ test.group('Unified admin uploads', (group) => {
       uploadedChunks: 0,
       storageUploadId: 'oss-upload-id',
       status: 'initialized',
+      uploaderType: 'admin',
       uploaderId: user.id,
       errorMessage: null,
       expiresAt: DateTime.now().plus({ hours: 1 }),
     })
-    const { default: UploadSessionService } =
-      await import('#services/upload/upload_session_service')
-    await UploadSessionService.abort(user, session.uploadId)
+    await UploadSessionService.abort({ type: 'admin', id: user.id }, session.uploadId)
     if (!adapter.aborted.includes('oss-upload-id')) {
       throw new Error('Expected OSS multipart abort to be called')
     }

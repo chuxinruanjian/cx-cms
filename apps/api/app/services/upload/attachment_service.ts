@@ -1,7 +1,8 @@
 import uploadConfig from '#config/upload'
 import UploadException from '#exceptions/upload_exception'
 import Attachment from '#models/attachment'
-import type AdminUser from '#models/admin_user'
+import type { UploadActor } from '#types/upload'
+import { canManageUpload } from '#services/upload/upload_ownership'
 import FileInspectorService from '#services/upload/file_inspector_service'
 import StorageManager from '#services/upload/storage/storage_manager'
 import type { StorageDisk, UploadMode } from '#types/upload'
@@ -25,7 +26,7 @@ interface DirectUploadInput {
 }
 
 export default class AttachmentService {
-  static async initializeDirect(user: AdminUser, input: DirectUploadInput) {
+  static async initializeDirect(user: UploadActor, input: DirectUploadInput) {
     if (!uploadConfig.directUploadEnabled) {
       throw new UploadException(
         'Qiniu direct upload is not enabled',
@@ -66,6 +67,7 @@ export default class AttachmentService {
       status: 'uploading',
       uploadMode: 'direct',
       uploadToken: input.uploadToken,
+      uploaderType: user.type,
       uploaderId: user.id,
       isComplete: false,
       errorMessage: null,
@@ -85,9 +87,9 @@ export default class AttachmentService {
     }
   }
 
-  static async completeDirect(user: AdminUser, attachmentId: number, uploadToken: string) {
+  static async completeDirect(user: UploadActor, attachmentId: number, uploadToken: string) {
     const attachment = await Attachment.findOrFail(attachmentId)
-    if (!user.isSuperAdmin && attachment.uploaderId !== user.id) {
+    if (!canManageUpload(user, attachment)) {
       throw new UploadException('Cannot complete this upload', 'E_ATTACHMENT_FORBIDDEN', 403)
     }
     if (attachment.uploadMode !== 'direct' || attachment.storageDisk !== 'qiniu') {
@@ -128,6 +130,7 @@ export default class AttachmentService {
       logger.info(
         {
           operation: 'qiniu_direct_upload_completed',
+          uploaderType: user.type,
           userId: user.id,
           attachmentId: attachment.id,
           storagePath: stored.storagePath,
@@ -144,7 +147,7 @@ export default class AttachmentService {
   }
 
   static async createNormal(
-    user: AdminUser,
+    user: UploadActor,
     input: FinalizeInput & {
       originalName: string
       uploadToken: string
@@ -173,6 +176,7 @@ export default class AttachmentService {
       status: 'uploading',
       uploadMode: 'normal',
       uploadToken: input.uploadToken,
+      uploaderType: user.type,
       uploaderId: user.id,
       isComplete: false,
       errorMessage: null,
@@ -237,6 +241,7 @@ export default class AttachmentService {
     logger.info(
       {
         operation: 'upload_completed',
+        uploaderType: attachment.uploaderType,
         userId: attachment.uploaderId,
         attachmentId: attachment.id,
         storagePath: stored.storagePath,
@@ -246,12 +251,12 @@ export default class AttachmentService {
     return attachment
   }
 
-  static async delete(user: AdminUser | null, attachment: Attachment, system = false) {
+  static async delete(user: UploadActor | null, attachment: Attachment, system = false) {
+    if (!system && (!user || !canManageUpload(user, attachment))) {
+      throw new UploadException('Cannot delete this attachment', 'E_ATTACHMENT_FORBIDDEN', 403)
+    }
     if (attachment.status === 'deleted') {
       return this.serialize(attachment)
-    }
-    if (!system && (!user || (!user.isSuperAdmin && attachment.uploaderId !== user.id))) {
-      throw new UploadException('Cannot delete this attachment', 'E_ATTACHMENT_FORBIDDEN', 403)
     }
 
     attachment.status = 'pending_delete'
@@ -274,6 +279,7 @@ export default class AttachmentService {
     logger.info(
       {
         operation: 'attachment_deleted',
+        uploaderType: system ? null : user?.type,
         userId: system ? null : user?.id,
         attachmentId: attachment.id,
         storagePath: attachment.storagePath,
@@ -309,6 +315,7 @@ export default class AttachmentService {
       status: attachment.status,
       uploadMode: attachment.uploadMode as UploadMode,
       uploadToken: attachment.uploadToken,
+      uploaderType: attachment.uploaderType,
       uploaderId: attachment.uploaderId,
       isComplete: Boolean(attachment.isComplete),
       url: contentUrl,

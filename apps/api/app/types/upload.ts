@@ -22,3 +22,7 @@ export type UploadSessionStatus = (typeof uploadSessionStatuses)[number]
 export type AttachmentFileType = 'image' | 'video' | 'audio' | 'document' | 'archive' | 'other'
 export type UploadMode = 'normal' | 'multipart' | 'direct'
 export type StorageDisk = 'local' | 'qiniu' | 'oss' | 's3'
+
+/** Built from authenticated server-side identity, never client-supplied fields. */
+export type UploadActor =
+  { type: 'admin'; id: number; isSuperAdmin?: boolean } | { type: 'user'; id: number }

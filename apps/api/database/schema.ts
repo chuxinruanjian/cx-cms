@@ -202,6 +202,7 @@ export class AttachmentSchema extends BaseModel {
     'uploadMode',
     'uploadToken',
     'uploaderId',
+    'uploaderType',
     'url',
     'uuid',
     'width',
@@ -257,6 +258,8 @@ export class AttachmentSchema extends BaseModel {
   declare uploadToken: string
   @column()
   declare uploaderId: number
+  @column()
+  declare uploaderType: string
   @column()
   declare url: string | null
   @column()
@@ -363,6 +366,7 @@ export class UploadSessionSchema extends BaseModel {
     'uploadToken',
     'uploadedChunks',
     'uploaderId',
+    'uploaderType',
   ] as const
   $columns = UploadSessionSchema.$columns
   @column()
@@ -401,4 +405,6 @@ export class UploadSessionSchema extends BaseModel {
   declare uploadedChunks: number
   @column()
   declare uploaderId: number
+  @column()
+  declare uploaderType: string
 }

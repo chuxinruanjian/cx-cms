@@ -6,6 +6,12 @@ import type { ApiDefinition } from './tree.d.ts'
 const placeholder: any = {}
 
 const routes = {
+  'uploaded_files.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/uploads/files/:uuid',
+    tokens: [{"old":"/api/v1/uploads/files/:uuid","type":0,"val":"api","end":""},{"old":"/api/v1/uploads/files/:uuid","type":0,"val":"v1","end":""},{"old":"/api/v1/uploads/files/:uuid","type":0,"val":"uploads","end":""},{"old":"/api/v1/uploads/files/:uuid","type":0,"val":"files","end":""},{"old":"/api/v1/uploads/files/:uuid","type":1,"val":"uuid","end":""}],
+    types: placeholder as Registry['uploaded_files.show']['types'],
+  },
   'admin.auth.login': {
     methods: ["POST"],
     pattern: '/api/v1/admin/auth/login',
@@ -150,12 +156,6 @@ const routes = {
     tokens: [{"old":"/api/v1/admin/upload-config","type":0,"val":"api","end":""},{"old":"/api/v1/admin/upload-config","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/upload-config","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/upload-config","type":0,"val":"upload-config","end":""}],
     types: placeholder as Registry['admin.upload_config.show']['types'],
   },
-  'admin.uploads.index': {
-    methods: ["GET","HEAD"],
-    pattern: '/api/v1/admin/uploads',
-    tokens: [{"old":"/api/v1/admin/uploads","type":0,"val":"api","end":""},{"old":"/api/v1/admin/uploads","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/uploads","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/uploads","type":0,"val":"uploads","end":""}],
-    types: placeholder as Registry['admin.uploads.index']['types'],
-  },
   'admin.uploads.store': {
     methods: ["POST"],
     pattern: '/api/v1/admin/uploads',
@@ -204,47 +204,11 @@ const routes = {
     tokens: [{"old":"/api/v1/admin/uploads/:uploadId/abort","type":0,"val":"api","end":""},{"old":"/api/v1/admin/uploads/:uploadId/abort","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/uploads/:uploadId/abort","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/uploads/:uploadId/abort","type":0,"val":"uploads","end":""},{"old":"/api/v1/admin/uploads/:uploadId/abort","type":1,"val":"uploadId","end":""},{"old":"/api/v1/admin/uploads/:uploadId/abort","type":0,"val":"abort","end":""}],
     types: placeholder as Registry['admin.uploads.abort']['types'],
   },
-  'admin.attachments.index': {
-    methods: ["GET","HEAD"],
-    pattern: '/api/v1/admin/attachments',
-    tokens: [{"old":"/api/v1/admin/attachments","type":0,"val":"api","end":""},{"old":"/api/v1/admin/attachments","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/attachments","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/attachments","type":0,"val":"attachments","end":""}],
-    types: placeholder as Registry['admin.attachments.index']['types'],
-  },
-  'admin.attachments.bind': {
-    methods: ["POST"],
-    pattern: '/api/v1/admin/attachments/bind',
-    tokens: [{"old":"/api/v1/admin/attachments/bind","type":0,"val":"api","end":""},{"old":"/api/v1/admin/attachments/bind","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/attachments/bind","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/attachments/bind","type":0,"val":"attachments","end":""},{"old":"/api/v1/admin/attachments/bind","type":0,"val":"bind","end":""}],
-    types: placeholder as Registry['admin.attachments.bind']['types'],
-  },
-  'admin.attachments.sort': {
-    methods: ["POST"],
-    pattern: '/api/v1/admin/attachments/sort',
-    tokens: [{"old":"/api/v1/admin/attachments/sort","type":0,"val":"api","end":""},{"old":"/api/v1/admin/attachments/sort","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/attachments/sort","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/attachments/sort","type":0,"val":"attachments","end":""},{"old":"/api/v1/admin/attachments/sort","type":0,"val":"sort","end":""}],
-    types: placeholder as Registry['admin.attachments.sort']['types'],
-  },
-  'admin.attachments.show': {
-    methods: ["GET","HEAD"],
-    pattern: '/api/v1/admin/attachments/:id',
-    tokens: [{"old":"/api/v1/admin/attachments/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/attachments/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/attachments/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/attachments/:id","type":0,"val":"attachments","end":""},{"old":"/api/v1/admin/attachments/:id","type":1,"val":"id","end":""}],
-    types: placeholder as Registry['admin.attachments.show']['types'],
-  },
-  'admin.attachments.content': {
-    methods: ["GET","HEAD"],
-    pattern: '/api/v1/admin/attachments/:id/content',
-    tokens: [{"old":"/api/v1/admin/attachments/:id/content","type":0,"val":"api","end":""},{"old":"/api/v1/admin/attachments/:id/content","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/attachments/:id/content","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/attachments/:id/content","type":0,"val":"attachments","end":""},{"old":"/api/v1/admin/attachments/:id/content","type":1,"val":"id","end":""},{"old":"/api/v1/admin/attachments/:id/content","type":0,"val":"content","end":""}],
-    types: placeholder as Registry['admin.attachments.content']['types'],
-  },
-  'admin.attachments.destroy': {
+  'admin.uploads.destroy': {
     methods: ["DELETE"],
-    pattern: '/api/v1/admin/attachments/:id',
-    tokens: [{"old":"/api/v1/admin/attachments/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/attachments/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/attachments/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/attachments/:id","type":0,"val":"attachments","end":""},{"old":"/api/v1/admin/attachments/:id","type":1,"val":"id","end":""}],
-    types: placeholder as Registry['admin.attachments.destroy']['types'],
-  },
-  'admin.upload_cleanup.store': {
-    methods: ["POST"],
-    pattern: '/api/v1/admin/uploads/cleanup',
-    tokens: [{"old":"/api/v1/admin/uploads/cleanup","type":0,"val":"api","end":""},{"old":"/api/v1/admin/uploads/cleanup","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/uploads/cleanup","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/uploads/cleanup","type":0,"val":"uploads","end":""},{"old":"/api/v1/admin/uploads/cleanup","type":0,"val":"cleanup","end":""}],
-    types: placeholder as Registry['admin.upload_cleanup.store']['types'],
+    pattern: '/api/v1/admin/uploads/files/:id',
+    tokens: [{"old":"/api/v1/admin/uploads/files/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/uploads/files/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/uploads/files/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/uploads/files/:id","type":0,"val":"uploads","end":""},{"old":"/api/v1/admin/uploads/files/:id","type":0,"val":"files","end":""},{"old":"/api/v1/admin/uploads/files/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.uploads.destroy']['types'],
   },
 } as const satisfies Record<string, AdonisEndpoint>
 

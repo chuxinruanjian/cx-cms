@@ -1,13 +1,9 @@
 import { AttachmentSchema } from '#database/schema'
-import AdminUser from '#models/admin_user'
 import UploadSession from '#models/upload_session'
 import { belongsTo, hasMany, hasOne } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany, HasOne } from '@adonisjs/lucid/types/relations'
 
 export default class Attachment extends AttachmentSchema {
-  @belongsTo(() => AdminUser, { foreignKey: 'uploaderId' })
-  declare uploader: BelongsTo<typeof AdminUser>
-
   @belongsTo(() => Attachment, { foreignKey: 'parentAttachmentId' })
   declare parent: BelongsTo<typeof Attachment>
 

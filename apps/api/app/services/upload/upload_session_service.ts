@@ -3,7 +3,8 @@ import UploadException from '#exceptions/upload_exception'
 import Attachment from '#models/attachment'
 import UploadChunk from '#models/upload_chunk'
 import UploadSession from '#models/upload_session'
-import type AdminUser from '#models/admin_user'
+import type { UploadActor } from '#types/upload'
+import { canManageUpload } from '#services/upload/upload_ownership'
 import AttachmentService from '#services/upload/attachment_service'
 import FileInspectorService from '#services/upload/file_inspector_service'
 import StorageManager from '#services/upload/storage/storage_manager'
@@ -25,7 +26,7 @@ interface InitInput {
 }
 
 export default class UploadSessionService {
-  static async initialize(user: AdminUser, input: InitInput) {
+  static async initialize(user: UploadActor, input: InitInput) {
     const originalName = FileInspectorService.sanitizeOriginalName(input.originalName)
     const fileType = FileInspectorService.classify(originalName, input.mimeType)
     FileInspectorService.assertSize(fileType, input.fileSize)
@@ -57,6 +58,7 @@ export default class UploadSessionService {
       status: 'uploading',
       uploadMode: 'multipart',
       uploadToken: input.uploadToken,
+      uploaderType: user.type,
       uploaderId: user.id,
       isComplete: false,
       errorMessage: null,
@@ -78,6 +80,7 @@ export default class UploadSessionService {
       uploadedChunks: 0,
       storageUploadId: null,
       status: 'initialized',
+      uploaderType: user.type,
       uploaderId: user.id,
       errorMessage: null,
       expiresAt,
@@ -86,6 +89,7 @@ export default class UploadSessionService {
     logger.info(
       {
         operation: 'upload_initialized',
+        uploaderType: user.type,
         userId: user.id,
         attachmentId: attachment.id,
         uploadId,
@@ -96,7 +100,7 @@ export default class UploadSessionService {
   }
 
   static async uploadChunk(
-    user: AdminUser,
+    user: UploadActor,
     uploadId: string,
     input: {
       chunkIndex: number
@@ -176,6 +180,7 @@ export default class UploadSessionService {
     logger.info(
       {
         operation: 'upload_chunk_completed',
+        uploaderType: user.type,
         userId: user.id,
         attachmentId: session.attachmentId,
         uploadId,
@@ -186,7 +191,7 @@ export default class UploadSessionService {
     return this.status(user, uploadId)
   }
 
-  static async status(user: AdminUser, uploadId: string) {
+  static async status(user: UploadActor, uploadId: string) {
     const session = await this.ownedSession(user, uploadId)
     const chunks = await UploadChunk.query()
       .where('upload_session_id', session.id)
@@ -197,7 +202,7 @@ export default class UploadSessionService {
     )
   }
 
-  static async complete(user: AdminUser, uploadId: string) {
+  static async complete(user: UploadActor, uploadId: string) {
     const session = await this.ownedSession(user, uploadId)
     if (session.status === 'completed') {
       return AttachmentService.findAndSerialize(session.attachmentId)
@@ -252,7 +257,7 @@ export default class UploadSessionService {
     }
   }
 
-  static async abort(user: AdminUser | null, uploadId: string, system = false) {
+  static async abort(user: UploadActor | null, uploadId: string, system = false) {
     const session = system
       ? await UploadSession.findByOrFail('uploadId', uploadId)
       : await this.ownedSession(user!, uploadId)
@@ -278,6 +283,7 @@ export default class UploadSessionService {
     logger.info(
       {
         operation: system ? 'upload_session_expired' : 'upload_aborted',
+        uploaderType: system ? null : user?.type,
         userId: system ? null : user?.id,
         attachmentId: session.attachmentId,
         uploadId,
@@ -311,9 +317,9 @@ export default class UploadSessionService {
     }
   }
 
-  private static async ownedSession(user: AdminUser, uploadId: string) {
+  private static async ownedSession(user: UploadActor, uploadId: string) {
     const session = await UploadSession.findByOrFail('uploadId', uploadId)
-    if (!user.isSuperAdmin && session.uploaderId !== user.id) {
+    if (!canManageUpload(user, session)) {
       throw new UploadException('Upload session belongs to another user', 'E_UPLOAD_FORBIDDEN', 403)
     }
     return session
